@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Operations Agent</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #ffffff;
+            --sidebar-bg: #f9f9f9;
+            --user-msg-bg: #f4f4f4;
+            --ai-text-color: #0d0d0d;
+            --accent-blue: #007bff;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        .chat-container {
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        /* --- Chat Window --- */
+        .chat-window {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 10px;
+            scroll-behavior: smooth;
+        }
+
+        .message-row {
+            display: flex;
+            width: 100%;
+            margin-bottom: 30px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        .avatar {
+            width: 30px;
+            height: 30px;
+            border-radius: 4px;
+            margin-right: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 12px;
+            flex-shrink: 0;
+        }
+
+        .user-row .avatar { background: var(--accent-blue); color: white; }
+        .ai-row .avatar { background: #10a37f; color: white; }
+
+        .content {
+            max-width: calc(100% - 50px);
+            color: var(--ai-text-color);
+            line-height: 1.6;
+            font-size: 16px;
+        }
+
+        .user-row .content {
+            background-color: var(--user-msg-bg);
+            padding: 10px 15px;
+            border-radius: 15px;
+        }
+
+        .content p { margin: 0 0 10px 0; }
+        .content ul, .content ol { margin-bottom: 10px; padding-left: 20px; }
+
+        /* --- Input Area --- */
+        .input-wrapper {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #eee;
+        }
+
+        .input-box {
+            position: relative;
+            max-width: 760px;
+            margin: 0 auto;
+            border: 1px solid #ccc;
+            border-radius: 12px;
+            padding: 10px 15px;
+            display: flex;
+            align-items: flex-end;
+            box-shadow: 0 0 10px rgba(0,0,0,0.05);
+        }
+
+        textarea {
+            flex: 1;
+            border: none;
+            outline: none;
+            resize: none;
+            padding: 8px 0;
+            font-size: 16px;
+            max-height: 200px;
+            font-family: inherit;
+        }
+
+        button {
+            background: #0d0d0d;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 12px;
+            cursor: pointer;
+            margin-left: 10px;
+            font-weight: bold;
+            transition: opacity 0.2s;
+        }
+
+        button:disabled { opacity: 0.3; cursor: not-allowed; }
+
+        /* --- Loading Dot Animation --- */
+        .typing { font-style: italic; color: #888; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+    <div class="chat-container">
+        <div id="chat-window" class="chat-window">
+            <div class="message-row ai-row">
+                <div class="avatar">AI</div>
+                <div class="content">Hello! How can I assist with your store operations or inventory today?</div>
+            </div>
+        </div>
+
+        <div class="input-wrapper">
+            <div class="input-box">
+                <textarea id="user-input" rows="1" placeholder="Message AI Agent..." oninput="autoGrow(this)"></textarea>
+                <button id="send-btn" onclick="send()">Send</button>
+            </div>
+            <p style="text-align: center; font-size: 11px; color: #888; margin-top: 10px;">
+                Connected to Elastic Agent Builder via FastAPI
+            </p>
+        </div>
+    </div>
+
+    <script>
+    // 1. Retrieve data from URL and SessionStorage
+    const urlParams = new URLSearchParams(window.location.search);
+    const managerName = urlParams.get('name') || "Manager";
+    const managerDept = urlParams.get('dept') || "Operations";
+    const DYNAMIC_AGENT_ID = urlParams.get('agent') || "ecomops_agent12345";
+    
+    // Get the Database Config we saved in config.html
+    const dbConfig = JSON.parse(sessionStorage.getItem('mgrConfig'));
+
+    let convId = null;
+
+    // Update the Welcome Message on load
+    window.onload = () => {
+        const chatWindow = document.getElementById('chat-window');
+        chatWindow.innerHTML = `
+            <div class="message-row ai-row">
+                <div class="avatar">AI</div>
+                <div class="content">Welcome back, <b>${managerName}</b>. I've initialized the <b>${DYNAMIC_AGENT_ID}</b> for the ${managerDept} department using your custom database connection. How can I help you today?</div>
+            </div>
+        `;
+        
+        // Basic check if config exists
+        if (!dbConfig) {
+            alert("No database configuration found. Please go back to the setup page.");
+            window.location.href = 'config.html';
+        }
+    };
+
+    // Auto-resize textarea as user types
+    function autoGrow(element) {
+        element.style.height = "5px";
+        element.style.height = (element.scrollHeight) + "px";
+    }
+
+    // MAIN SEND FUNCTION
+    async function send() {
+        const inputField = document.getElementById('user-input');
+        const text = inputField.value.trim();
+        if (!text) return;
+
+        // 1. Add User bubble to UI
+        addMsg(text, 'user');
+        inputField.value = '';
+        inputField.style.height = 'auto';
+
+        // 2. Add "Thinking" bubble for AI
+        const aiMsgId = addMsg('...', 'ai', true);
+
+        try {
+            // 3. Fetch from FastAPI
+            const res = await fetch('http://127.0.0.1:8000/api/v1/converse', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    // Optional: Pass the manager name in headers for tracking
+                    'X-Manager-Name': managerName 
+                },
+                body: JSON.stringify({ 
+                    prompt: text, 
+                    conversation_id: convId,
+                    agent_id: DYNAMIC_AGENT_ID,
+                    // Pass the dbConfig so the backend can connect to the manager's DB
+                    db_config: dbConfig 
+                })
+            });
+
+            const data = await res.json();
+            
+            // 4. Update Conversation ID if it's new
+            if (data.conversation_id) convId = data.conversation_id;
+
+            // 5. Render the AI Response
+            const answer = data.response?.message || "I processed your request, but no message was returned.";
+            updateMsg(aiMsgId, answer);
+
+        } catch (error) {
+            updateMsg(aiMsgId, "⚠️ **Error:** I couldn't connect to the backend. Please ensure FastAPI is running.");
+            console.error(error);
+        }
+    }
+
+    function addMsg(text, sender, isThinking = false) {
+        const chatWindow = document.getElementById('chat-window');
+        const id = "msg-" + Date.now();
+        
+        const row = document.createElement('div');
+        row.className = `message-row ${sender}-row`;
+        row.innerHTML = `
+            <div class="avatar">${sender === 'user' ? 'U' : 'AI'}</div>
+            <div class="content ${isThinking ? 'typing' : ''}" id="${id}">
+                ${sender === 'user' ? text : (isThinking ? 'AI is thinking...' : marked.parse(text))}
+            </div>
+        `;
+        
+        chatWindow.appendChild(row);
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+        return id;
+    }
+
+    function updateMsg(id, text) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.classList.remove('typing');
+        el.innerHTML = marked.parse(text); 
+        document.getElementById('chat-window').scrollTop = document.getElementById('chat-window').scrollHeight;
+    }
+
+    // Handle Enter key (Shift+Enter for new line)
+    document.getElementById('user-input').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            send();
+        }
+    });
+</script>
+</body>
+</html>
