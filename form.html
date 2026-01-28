@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configure AI Agent | EcomOps</title>
+    <style>
+        body { font-family: 'Inter', sans-serif; background: #f4f7f9; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 20px 0; }
+        .card { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); width: 100%; max-width: 450px; }
+        h2 { margin-top: 0; color: #333; font-size: 24px; text-align: center;}
+        .section-title { font-size: 14px; font-weight: bold; color: #007bff; margin: 20px 0 10px 0; text-transform: uppercase; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-size: 12px; font-weight: 600; color: #444; margin-bottom: 5px; }
+        input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
+        button { width: 100%; padding: 14px; background: #28a745; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 20px; font-size: 16px; }
+        button:hover { background: #218838; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>System Configuration</h2>
+        <form id="configForm">
+            <div class="section-title">Manager Details</div>
+            <div class="form-group">
+                <label>Full Name</label>
+                <input type="text" id="mgrName" placeholder="John Doe" required>
+            </div>
+            
+            <div class="section-title">Database Connection (Supabase)</div>
+            <div class="form-group">
+                <label>DB Host</label>
+                <input type="text" id="dbHost" placeholder="db.xxxx.supabase.co" required>
+            </div>
+            <div class="form-group" style="display: flex; gap: 10px;">
+                <div style="flex: 2;">
+                    <label>DB Name</label>
+                    <input type="text" id="dbName" value="postgres" required>
+                </div>
+                <div style="flex: 1;">
+                    <label>Port</label>
+                    <input type="number" id="dbPort" value="5432" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>User</label>
+                <input type="text" id="dbUser" value="postgres" required>
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="dbPass" placeholder="••••••••" required>
+            </div>
+
+            <button type="submit">Connect Agent to Database</button>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('configForm').onsubmit = function(e) {
+            e.preventDefault();
+            
+            // Collect all data
+            const config = {
+                name: document.getElementById('mgrName').value,
+                host: document.getElementById('dbHost').value,
+                port: document.getElementById('dbPort').value,
+                db: document.getElementById('dbName').value,
+                user: document.getElementById('dbUser').value,
+                pass: document.getElementById('dbPass').value
+            };
+            
+            // Store temporarily in session storage (so the next page can read it)
+            sessionStorage.setItem('mgrConfig', JSON.stringify(config));
+
+            // Redirect to the chat interface
+            alert("Database Configured! Redirecting to AI Agent...");
+            window.location.href = `index.html`; 
+        };
+    </script>
+</body>
+</html>
