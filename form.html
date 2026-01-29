@@ -3,78 +3,207 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Configure AI Agent | EcomOps</title>
+    <title>Register Manager | EcomOps AI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background: #f4f7f9; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 20px 0; }
-        .card { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); width: 100%; max-width: 450px; }
-        h2 { margin-top: 0; color: #333; font-size: 24px; text-align: center;}
-        .section-title { font-size: 14px; font-weight: bold; color: #007bff; margin: 20px 0 10px 0; text-transform: uppercase; border-bottom: 1px solid #eee; padding-bottom: 5px; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; font-size: 12px; font-weight: 600; color: #444; margin-bottom: 5px; }
-        input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
-        button { width: 100%; padding: 14px; background: #28a745; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 20px; font-size: 16px; }
-        button:hover { background: #218838; }
+        :root {
+            --primary: #6366f1;
+            --primary-glow: rgba(99, 102, 241, 0.4);
+            --bg: #0f172a;
+            --glass: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(circle at top right, #1e1b4b, #0f172a);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .form-card {
+            background: var(--glass);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid var(--glass-border);
+            border-radius: 28px;
+            padding: 40px;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .header { text-align: center; margin-bottom: 32px; }
+        .header h2 { font-family: 'Plus Jakarta Sans'; font-size: 28px; margin-bottom: 8px; }
+        .header p { color: var(--text-dim); font-size: 14px; }
+
+        .section-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--primary);
+            margin: 24px 0 12px;
+            font-weight: 700;
+            display: block;
+        }
+
+        .input-group { position: relative; margin-bottom: 20px; }
+
+        input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 14px 16px;
+            color: white;
+            font-size: 15px;
+            transition: all 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.05);
+            box-shadow: 0 0 15px var(--primary-glow);
+        }
+
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+
+        button {
+            width: 100%;
+            padding: 16px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px var(--primary-glow);
+        }
+
+        button:hover {
+            background: #4f46e5;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px var(--primary-glow);
+        }
+
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 24px;
+            color: var(--text-dim);
+            text-decoration: none;
+            font-size: 13px;
+        }
+
+        .back-link:hover { color: white; }
     </style>
 </head>
 <body>
-    <div class="card">
-        <h2>System Configuration</h2>
-        <form id="configForm">
-            <div class="section-title">Manager Details</div>
-            <div class="form-group">
-                <label>Full Name</label>
-                <input type="text" id="mgrName" placeholder="John Doe" required>
+    <div class="form-card">
+        <div class="header">
+            <h2>Manager Registration</h2>
+            <p>Onboard a new agent to your EcomOps network</p>
+        </div>
+
+        <form id="registrationForm">
+            <span class="section-label">General Information</span>
+            <div class="input-group">
+                <input type="text" id="full_name" placeholder="Manager Full Name" required>
             </div>
-            
-            <div class="section-title">Database Connection (Supabase)</div>
-            <div class="form-group">
-                <label>DB Host</label>
-                <input type="text" id="dbHost" placeholder="db.xxxx.supabase.co" required>
-            </div>
-            <div class="form-group" style="display: flex; gap: 10px;">
-                <div style="flex: 2;">
-                    <label>DB Name</label>
-                    <input type="text" id="dbName" value="postgres" required>
-                </div>
-                <div style="flex: 1;">
-                    <label>Port</label>
-                    <input type="number" id="dbPort" value="5432" required>
-                </div>
-            </div>
-            <div class="form-group">
-                <label>User</label>
-                <input type="text" id="dbUser" value="postgres" required>
-            </div>
-            <div class="form-group">
-                <label>Password</label>
-                <input type="password" id="dbPass" placeholder="••••••••" required>
+            <div class="input-group">
+                <input type="text" id="company_name" placeholder="Company / Organization" required>
             </div>
 
-            <button type="submit">Connect Agent to Database</button>
+            <span class="section-label">Database Configuration (Direct Link)</span>
+            <div class="input-group">
+                <input type="text" id="db_host" placeholder="Database Host (e.g. db.project.co)" required>
+            </div>
+            
+            <div class="grid">
+                <div class="input-group">
+                    <input type="text" id="db_username" placeholder="DB Username" required>
+                </div>
+                <div class="input-group">
+                    <input type="password" id="db_pass" placeholder="DB Password" required>
+                </div>
+            </div>
+
+            <div class="grid">
+                <div class="input-group">
+                    <input type="text" id="db_name" placeholder="DB Name" required>
+                </div>
+                <div class="input-group">
+                    <input type="number" id="db_port" placeholder="Port (5432)" required>
+                </div>
+            </div>
+
+            <button type="submit">Create Agent Profile</button>
         </form>
+
+        <a href="index.html" class="back-link">← Cancel and return to home</a>
     </div>
 
     <script>
-        document.getElementById('configForm').onsubmit = function(e) {
-            e.preventDefault();
-            
-            // Collect all data
-            const config = {
-                name: document.getElementById('mgrName').value,
-                host: document.getElementById('dbHost').value,
-                port: document.getElementById('dbPort').value,
-                db: document.getElementById('dbName').value,
-                user: document.getElementById('dbUser').value,
-                pass: document.getElementById('dbPass').value
-            };
-            
-            // Store temporarily in session storage (so the next page can read it)
-            sessionStorage.setItem('mgrConfig', JSON.stringify(config));
+    document.getElementById('registrationForm').onsubmit = async (e) => {
+        e.preventDefault();
 
-            // Redirect to the chat interface
-            alert("Database Configured! Redirecting to AI Agent...");
-            window.location.href = `index.html`; 
+        // 1. Get the button and show loading state
+        const submitBtn = e.target.querySelector('button');
+        const originalText = submitBtn.innerText;
+        submitBtn.innerText = "Connecting to Master DB...";
+        submitBtn.disabled = true;
+
+        // 2. Prepare the data (ensure keys match your FastAPI Pydantic model)
+        const formData = {
+            manager_id: document.getElementById('full_name').value.toLowerCase().replace(/\s+/g, '_'),
+            full_name: document.getElementById('full_name').value,
+            db_host: document.getElementById('db_host').value,
+            db_port: parseInt(document.getElementById('db_port').value),
+            db_name: document.getElementById('db_name').value,
+            db_user: document.getElementById('db_username').value, // Matches HTML ID
+            db_pass: document.getElementById('db_pass').value
         };
-    </script>
+
+        try {
+            // 3. Send the POST request to your FastAPI server
+            const response = await fetch('http://127.0.0.1:8000/api/v1/register-manager', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData)
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                alert('✅ Agent Profile Created Successfully!');
+                window.location.href = 'index.html'; // Redirect to home
+            } else {
+                // Show the specific error from FastAPI
+                alert('❌ Registration Failed: ' + (result.detail || 'Unknown error'));
+            }
+        } catch (error) {
+            console.error('Connection Error:', error);
+            alert('❌ Could not connect to the backend. Is your Uvicorn server running?');
+        } finally {
+            // 4. Reset button state
+            submitBtn.innerText = originalText;
+            submitBtn.disabled = false;
+        }
+    };
+</script>
 </body>
 </html>
