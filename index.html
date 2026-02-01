@@ -3,267 +3,812 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Operations Agent</title>
+    <title>EcomOps AI | Command Center</title>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <style>
-        :root {
-            --bg-color: #ffffff;
-            --sidebar-bg: #f9f9f9;
-            --user-msg-bg: #f4f4f4;
-            --ai-text-color: #0d0d0d;
-            --accent-blue: #007bff;
-        }
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+        /* Light Theme (Default) */
+        --bg-main: #f8fafc;
+        --bg-sidebar: #ffffff;
+        --sidebar-hover: #f1f5f9;
+        --accent-primary: #10a37f;
+        --accent-user: #6366f1;
+        --text-main: #1e293b;
+        --text-muted: #64748b;
+        --border-color: #e2e8f0;
+        --glass: rgba(255, 255, 255, 0.9);
+        --input-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+    }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-color);
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            height: 100vh;
-        }
+    [data-theme="dark"] {
+        /* Dark Theme */
+        --bg-main: #0b0f1a;
+        --bg-sidebar: #05070a;
+        --sidebar-hover: #161b26;
+        --accent-primary: #10a37f;
+        --accent-user: #4f46e5;
+        --text-main: #f1f5f9;
+        --text-muted: #94a3b8;
+        --border-color: #1e293b;
+        --glass: rgba(15, 23, 42, 0.8);
+        --input-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    }
 
-        .chat-container {
-            width: 100%;
-            max-width: 800px;
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-        }
+    * { margin: 0; padding: 0; box-sizing: border-box; transition: background-color 0.3s, color 0.3s; }
 
-        /* --- Chat Window --- */
-        .chat-window {
-            flex: 1;
-            overflow-y: auto;
-            padding: 20px 10px;
-            scroll-behavior: smooth;
-        }
+    body {
+        font-family: 'Inter', sans-serif;
+        background-color: var(--bg-main);
+        color: var(--text-main);
+        display: flex;
+        height: 100vh;
+    }
 
-        .message-row {
-            display: flex;
-            width: 100%;
-            margin-bottom: 30px;
-            animation: fadeIn 0.3s ease;
-        }
+    /* --- Message Row Structure --- */
+    .message-row {
+        max-width: 850px;
+        margin: 0 auto 32px auto;
+        display: flex;
+        gap: 16px;
+        animation: fadeIn 0.3s ease;
+    }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
 
-        .avatar {
-            width: 30px;
-            height: 30px;
-            border-radius: 4px;
-            margin-right: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 12px;
-            flex-shrink: 0;
-        }
+    /* --- User: Right Aligned & Colored --- */
+    .user-row {
+        flex-direction: row-reverse;
+    }
 
-        .user-row .avatar { background: var(--accent-blue); color: white; }
-        .ai-row .avatar { background: #10a37f; color: white; }
+    .user-row .content {
+        background: var(--accent-user);
+        color: white;
+        border-radius: 18px 18px 2px 18px; /* Rounded corners with one sharp edge */
+        padding: 14px 20px;
+        box-shadow: 0 4px 15px rgba(99, 102, 241, 0.2);
+        border: none;
+        max-width: 70%;
+    }
 
-        .content {
-            max-width: calc(100% - 50px);
-            color: var(--ai-text-color);
-            line-height: 1.6;
-            font-size: 16px;
-        }
+    /* --- AI: Left Aligned & Clean --- */
+    .ai-row .content {
+        background: var(--bg-sidebar);
+        color: var(--text-main);
+        border-radius: 18px 18px 18px 2px;
+        padding: 18px 24px;
+        border: 1px solid var(--border-color);
+        box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+        line-height: 1.7;
+    }
 
-        .user-row .content {
-            background-color: var(--user-msg-bg);
-            padding: 10px 15px;
-            border-radius: 15px;
-        }
+    /* --- Avatars --- */
+    .avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        font-weight: 800;
+        flex-shrink: 0;
+        align-self: flex-end; /* Keeps avatar at the bottom of long messages */
+    }
 
-        .content p { margin: 0 0 10px 0; }
-        .content ul, .content ol { margin-bottom: 10px; padding-left: 20px; }
+    .ai-row .avatar { 
+        background: var(--accent-primary); 
+        color: white;
+        box-shadow: 0 4px 10px rgba(16, 163, 127, 0.3);
+    }
 
-        /* --- Input Area --- */
-        .input-wrapper {
-            padding: 20px;
-            background: white;
-            border-top: 1px solid #eee;
-        }
+    .user-row .avatar { 
+        background: #ffffff; 
+        color: var(--accent-user);
+        border: 2px solid var(--accent-user);
+    }
 
-        .input-box {
-            position: relative;
-            max-width: 760px;
-            margin: 0 auto;
-            border: 1px solid #ccc;
-            border-radius: 12px;
-            padding: 10px 15px;
-            display: flex;
-            align-items: flex-end;
-            box-shadow: 0 0 10px rgba(0,0,0,0.05);
-        }
+    /* --- Markdown Styling inside AI Responses --- */
+    .content p { margin-bottom: 12px; }
+    .content code {
+        background: rgba(0,0,0,0.1);
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-family: 'Courier New', monospace;
+        font-size: 0.9em;
+    }
+    [data-theme="dark"] .content code { background: rgba(255,255,255,0.1); }
+    /* --- Sidebar & Toggle --- */
+    .sidebar {
+        width: 260px;
+        background-color: var(--bg-sidebar);
+        border-right: 1px solid var(--border-color);
+        display: flex;
+        flex-direction: column;
+        padding: 24px 16px;
+    }
 
-        textarea {
-            flex: 1;
-            border: none;
-            outline: none;
-            resize: none;
-            padding: 8px 0;
-            font-size: 16px;
-            max-height: 200px;
-            font-family: inherit;
-        }
+    .theme-toggle {
+        margin-top: auto;
+        padding: 12px;
+        border-radius: 10px;
+        border: 1px solid var(--border-color);
+        background: transparent;
+        color: var(--text-main);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        font-weight: 600;
+        font-size: 13px;
+    }
+    /* --- Enhanced Sidebar History --- */
+    .history-label {
+        font-size: 11px;         /* Small and sophisticated */
+        font-weight: 700;       /* Bold to stand out despite size */
+        text-transform: uppercase;
+        letter-spacing: 0.08em; /* Added spacing for better legibility */
+        color: var(--text-muted);
+        margin: 24px 12px 10px 16px;
+        opacity: 0.6;
+    }
 
-        button {
-            background: #0d0d0d;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            padding: 8px 12px;
-            cursor: pointer;
-            margin-left: 10px;
-            font-weight: bold;
-            transition: opacity 0.2s;
-        }
+    /* The individual chat thread titles */
+    .history-item {
+        font-size: 13.5px;      /* Standard readable size for links */
+        font-weight: 500;       /* Medium weight for clarity */
+        line-height: 1.4;
+        color: var(--text-muted);
+        padding: 10px 16px;
+    }
 
-        button:disabled { opacity: 0.3; cursor: not-allowed; }
+    /* Hover state for titles */
+    .history-item:hover {
+        color: var(--text-main);
+        font-size: 13.5px;      /* Keep size consistent to prevent "jitter" */
+    }
 
-        /* --- Loading Dot Animation --- */
-        .typing { font-style: italic; color: #888; font-size: 14px; }
-    </style>
+    /* Active chat title */
+    .history-item.active {
+        font-size: 13.5px;
+        font-weight: 600;       /* Slightly bolder to show it's selected */
+        color: var(--accent-primary);
+    }
+
+    /* Truncated text inside the span */
+    .history-item span {
+        font-size: inherit;     /* Inherits the 13.5px from parent */
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    /* Add a subtle icon before the text */
+    .history-item::before {
+        content: '💬';
+        font-size: 12px;
+        filter: grayscale(1);
+        opacity: 0.5;
+    }
+
+    .history-item:hover {
+        background: var(--sidebar-hover);
+        color: var(--text-main);
+        transform: translateX(4px);
+    }
+    /* --- Top Bar Layout --- */
+.top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 40px;
+    background: var(--glass);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border-color);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.top-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 24px;
+    height: 60px;
+    background: var(--bg-main); /* Match main background */
+    border-bottom: 1px solid var(--border-color);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.model-badge {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+    background: var(--sidebar-hover);
+    padding: 4px 10px;
+    border-radius: 8px;
+}
+
+.profile-trigger {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    padding: 6px 8px;
+    border-radius: 10px;
+    transition: background 0.2s ease;
+}
+
+.profile-trigger:hover {
+    background: var(--sidebar-hover);
+}
+
+.mgr-info #mgr-display-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-main);
+}
+
+.top-nav .avatar {
+    width: 32px;
+    height: 32px;
+    background: var(--accent-user);
+    color: white;
+    font-size: 14px;
+    border-radius: 50%; /* Circular for standard look */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+}
+
+/* Ensure the chat window accounts for the sticky header */
+.chat-window {
+    padding-top: 20px !important;
+}
+.profile-trigger {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    padding: 6px 12px;
+    border-radius: 12px;
+    transition: 0.2s;
+}
+
+.profile-trigger:hover { background: var(--sidebar-hover); }
+
+.mgr-info { text-align: right; }
+.mgr-info span { display: block; font-weight: 600; font-size: 14px; }
+.mgr-info small { color: var(--text-muted); font-size: 11px; }
+
+/* --- Password Update Design --- */
+.update-section {
+    background: rgba(255, 255, 255, 0.03);
+    padding: 20px;
+    border-radius: 16px;
+    border: 1px solid var(--border-color);
+    margin-top: 20px;
+}
+
+.password-box {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.password-box input {
+    flex: 1;
+    background: var(--bg-main);
+    padding: 10px 14px;
+    border-radius: 8px;
+}
+
+.save-btn {
+    background: var(--accent-primary);
+    color: white;
+    border: none;
+    padding: 0 16px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.save-btn:hover { background: #0e8c6d; }
+
+.helper-text { font-size: 11px; color: var(--text-muted); margin-top: 8px; }
+
+.modal-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 30px;
+}
+
+.logout-link { background: none; border: none; color: #ef4444; cursor: pointer; font-weight: 600; font-size: 13px; }
+.close-btn { background: var(--sidebar-hover); border: none; color: var(--text-main); padding: 8px 16px; border-radius: 8px; cursor: pointer; }
+
+/* Avatar Large */
+.avatar-large {
+    width: 70px; height: 70px;
+    background: var(--accent-user);
+    color: white;
+    border-radius: 20px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px; font-weight: 800;
+    margin: 0 auto 16px;
+}
+    .history-item.active {
+        background: var(--sidebar-hover);
+        color: var(--accent-primary);
+        font-weight: 600;
+        border-color: var(--border-color);
+    }
+
+    /* The Active Indicator Strip */
+    .history-item.active::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 25%;
+        height: 50%;
+        width: 3px;
+        background: var(--accent-primary);
+        border-radius: 0 4px 4px 0;
+    }
+
+    .history-item span {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: block;
+    }
+
+    /* --- Message Action Toolbar --- */
+   .message-actions {
+        display: flex;
+        gap: 12px;
+        margin-top: 8px;
+        opacity: 0;
+        transition: opacity 0.2s ease, transform 0.2s ease;
+        transform: translateY(5px);
+    }
+
+    .message-row:hover .message-actions {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .action-btn {
+        background: none;
+        border: none;
+        color: var(--text-muted);
+        cursor: pointer;
+        font-size: 11px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 8px;
+        border-radius: 6px;
+        transition: 0.2s;
+    }
+
+    .action-btn:hover {
+        background: var(--sidebar-hover);
+        color: var(--accent-primary);
+    }
+
+    /* --- Profile Modal Styles --- */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(8px);
+    display: none; /* Hidden by default */
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.profile-card {
+    background: var(--bg-sidebar);
+    border: 1px solid var(--border-color);
+    padding: 32px;
+    border-radius: 24px;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.2);
+    animation: modalIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modalIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+.profile-card .header { text-align: center; margin-bottom: 24px; }
+    .user-row .message-actions { flex-direction: row-reverse; }
+    /* --- Markdown Spacing --- */
+
+    .content p { margin-bottom: 8px; }
+    .content p:last-child { margin-bottom: 0; }
+    /* --- Rest of Styles (Abbreviated for focus) --- */
+    .new-chat-btn { background: var(--bg-sidebar); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 12px; padding: 14px; margin-bottom: 32px; cursor: pointer; }
+    .history-item.active { background: var(--sidebar-hover); color: var(--accent-primary); border-left: 3px solid var(--accent-primary); }
+    .main-content { flex: 1; display: flex; flex-direction: column; }
+    .chat-window { flex: 1; overflow-y: auto; padding: 60px 20px; }
+    .input-box { background: var(--glass); border: 1px solid var(--border-color); border-radius: 16px; padding: 12px 18px; display: flex; box-shadow: var(--input-shadow); }
+    textarea { flex: 1; background: transparent; border: none; outline: none; color: var(--text-main); }
+</style>
 </head>
 <body>
+    <div class="sidebar">
+        <button class="new-chat-btn" onclick="startNewChat()">+ New Chat</button>
+        <div class="history-label">Recent History</div>
+        <div id="history-list" class="history-list"></div>
+        
+        <button class="theme-toggle" onclick="toggleTheme()">
+            <span id="theme-icon">🌙</span> <span id="theme-text">Dark Mode</span>
+        </button>
+    </div>
 
-    <div class="chat-container">
-        <div id="chat-window" class="chat-window">
-            <div class="message-row ai-row">
-                <div class="avatar">AI</div>
-                <div class="content">Hello! How can I assist with your store operations or inventory today?</div>
-            </div>
+    <div class="main-content">
+        <header class="top-nav">
+        <div class="model-info">
+            <span class="model-badge">EcomOps v1.0</span>
         </div>
+        
+        <div class="profile-trigger" onclick="openProfile()">
+            <div class="mgr-info">
+                <span id="mgr-display-name">Manager</span>
+            </div>
+           
+        </div>
+    </header>
+        <div id="chat-window" class="chat-window"></div>
 
         <div class="input-wrapper">
             <div class="input-box">
-                <textarea id="user-input" rows="1" placeholder="Message AI Agent..." oninput="autoGrow(this)"></textarea>
-                <button id="send-btn" onclick="send()">Send</button>
+                <textarea id="user-input" rows="1" placeholder="Ask EcomOps Agent anything..." oninput="autoGrow(this)"></textarea>
+                <button class="send-btn" id="send-btn" onclick="send()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                </button>
             </div>
-            <p style="text-align: center; font-size: 11px; color: #888; margin-top: 10px;">
-                Connected to Elastic Agent Builder via FastAPI
-            </p>
         </div>
     </div>
+   
+
+
+
+<div id="profile-overlay" class="modal-overlay" onclick="closeProfile(event)">
+    <div class="profile-card" onclick="event.stopPropagation()">
+        <div class="profile-header">
+           
+            <h2 id="profile-name">Full Name</h2>
+            
+        </div>
+
+        <div class="update-section">
+            <span class="section-label">Security Update</span>
+            <div class="password-box">
+                <input type="password" id="new-password" placeholder="Enter new password">
+                <button class="save-btn" onclick="saveProfile()">Update</button>
+            </div>
+            <p class="helper-text">Password must be at least 8 characters long.</p>
+        </div>
+
+        <div class="modal-footer">
+            <button class="logout-link" onclick="logout()">Sign Out</button>
+            <button class="close-btn" onclick="closeProfile()">Close</button>
+        </div>
+    </div>
+</div>
 
     <script>
-    // 1. Retrieve data from URL and SessionStorage
     const urlParams = new URLSearchParams(window.location.search);
-    const managerName = urlParams.get('name') || "Manager";
-    const managerDept = urlParams.get('dept') || "Operations";
-    const DYNAMIC_AGENT_ID = urlParams.get('agent') || "ecomops_agent12345";
-    
-    // Get the Database Config we saved in config.html
-    const dbConfig = JSON.parse(sessionStorage.getItem('mgrConfig'));
-
+    const MANAGER_ID = localStorage.getItem('current_manager_id');
+    const managerName = localStorage.getItem('current_manager_name') || "Manager";
+    const DYNAMIC_AGENT_ID = urlParams.get('agent') || "ecomops_master";
     let convId = null;
 
-    // Update the Welcome Message on load
-    window.onload = () => {
-        const chatWindow = document.getElementById('chat-window');
-        chatWindow.innerHTML = `
-            <div class="message-row ai-row">
-                <div class="avatar">AI</div>
-                <div class="content">Welcome back, <b>${managerName}</b>. I've initialized the <b>${DYNAMIC_AGENT_ID}</b> for the ${managerDept} department using your custom database connection. How can I help you today?</div>
-            </div>
-        `;
-        
-        // Basic check if config exists
-        if (!dbConfig) {
-            alert("No database configuration found. Please go back to the setup page.");
-            window.location.href = 'config.html';
+     document.addEventListener('click', function(e) {
+        const btn = e.target.closest('.action-btn');
+        if (!btn) return;
+
+        // Use the handleAction logic but triggered via this listener
+        const actionType = btn.getAttribute('data-action');
+        const targetId = btn.getAttribute('data-target');
+        const contentEl = document.getElementById(targetId);
+
+        if (!contentEl) return;
+
+        if (actionType === 'copy') {
+            const textToCopy = contentEl.innerText;
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                const originalHTML = btn.innerHTML;
+                btn.innerHTML = "✅ Copied!";
+                setTimeout(() => { btn.innerHTML = originalHTML; }, 1500);
+            });
+        } 
+        else if (actionType === 'edit') {
+            const inputField = document.getElementById('user-input');
+            inputField.value = contentEl.innerText;
+            inputField.focus();
+            autoGrow(inputField);
+            // Visual feedback
+            inputField.style.boxShadow = "0 0 0 2px var(--accent-primary)";
+            setTimeout(() => { inputField.style.boxShadow = ""; }, 1000);
         }
+    });
+
+    if (!MANAGER_ID) {
+        alert("❌ No Manager ID found. Redirecting to registration.");
+        window.location.href = 'form.html'; 
+    }
+
+    window.onload = () => {
+        loadManagerThreads();
+        startNewChat();
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark') toggleTheme();
     };
 
-    // Auto-resize textarea as user types
-    function autoGrow(element) {
-        element.style.height = "5px";
-        element.style.height = (element.scrollHeight) + "px";
+    async function loadManagerThreads() {
+        const res = await fetch(`http://127.0.0.1:8000/api/v1/threads/${MANAGER_ID}`);
+        const data = await res.json();
+        renderSidebar(data.threads);
     }
 
-    // MAIN SEND FUNCTION
-    async function send() {
-        const inputField = document.getElementById('user-input');
-        const text = inputField.value.trim();
-        if (!text) return;
 
-        // 1. Add User bubble to UI
-        addMsg(text, 'user');
-        inputField.value = '';
-        inputField.style.height = 'auto';
-
-        // 2. Add "Thinking" bubble for AI
-        const aiMsgId = addMsg('...', 'ai', true);
-
-        try {
-            // 3. Fetch from FastAPI
-            const res = await fetch('http://127.0.0.1:8000/api/v1/converse', {
-                method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    // Optional: Pass the manager name in headers for tracking
-                    'X-Manager-Name': managerName 
-                },
-                body: JSON.stringify({ 
-                    prompt: text, 
-                    conversation_id: convId,
-                    agent_id: DYNAMIC_AGENT_ID,
-                    // Pass the dbConfig so the backend can connect to the manager's DB
-                    db_config: dbConfig 
-                })
-            });
-
-            const data = await res.json();
-            
-            // 4. Update Conversation ID if it's new
-            if (data.conversation_id) convId = data.conversation_id;
-
-            // 5. Render the AI Response
-            const answer = data.response?.message || "I processed your request, but no message was returned.";
-            updateMsg(aiMsgId, answer);
-
-        } catch (error) {
-            updateMsg(aiMsgId, "⚠️ **Error:** I couldn't connect to the backend. Please ensure FastAPI is running.");
-            console.error(error);
-        }
-    }
-
-    function addMsg(text, sender, isThinking = false) {
-        const chatWindow = document.getElementById('chat-window');
-        const id = "msg-" + Date.now();
+    // Function to update UI with Manager's Initial
+function updateSidebarUI() {
+    const name = localStorage.getItem('current_manager_name') || "Manager";
+    const initial = name.charAt(0).toUpperCase();
+    
+    // Update the text and the avatar initial
+    const nameEl = document.getElementById('mgr-display-name');
+    const avatarEl = document.getElementById('top-avatar');
+    
+    if (nameEl) nameEl.innerText = name;
+    if (avatarEl) avatarEl.innerText = initial;
+}
+async function openProfile() {
+    // Show the modal first
+    document.getElementById('profile-overlay').style.display = 'flex';
+    
+    try {
+        const res = await fetch(`http://127.0.0.1:8000/api/v1/manager/profile/${MANAGER_ID}`);
+        const data = await res.json();
         
+        if (res.ok) {
+            document.getElementById('profile-name').innerText = data.full_name;
+            document.getElementById('profile-email').innerText = data.email;
+            // You could also add a company name field to your modal if you like!
+        }
+    } catch (err) {
+        console.error("Could not load profile:", err);
+    }
+}
+
+function closeProfile(e) {
+    document.getElementById('profile-overlay').style.display = 'none';
+}
+
+function logout() {
+    if(confirm("Are you sure you want to log out?")) {
+        localStorage.removeItem('current_manager_id');
+        localStorage.removeItem('current_manager_name');
+        window.location.href = 'login.html';
+    }
+}
+
+async function saveProfile() {
+    const btn = document.querySelector('.save-btn');
+    const newPwd = document.getElementById('new-password').value;
+    
+    if (newPwd.length < 8) {
+        alert("Password must be at least 8 characters!");
+        return;
+    }
+
+    btn.innerText = "Saving...";
+    btn.disabled = true;
+
+    try {
+        const res = await fetch(`http://127.0.0.1:8000/api/v1/manager/update-password`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                manager_id: MANAGER_ID, 
+                new_password: newPwd 
+            })
+        });
+
+        if (res.ok) {
+            alert("✅ Password updated successfully!");
+            document.getElementById('new-password').value = '';
+            closeProfile();
+        }
+    } catch (e) {
+        alert("Server error.");
+    } finally {
+        btn.innerText = "Update";
+        btn.disabled = false;
+    }
+}
+        // Update the window.onload to include UI update
+        const originalOnload = window.onload;
+        window.onload = () => {
+            if(originalOnload) originalOnload();
+            updateSidebarUI();
+        };
+    // --- CONSOLIDATED MESSAGE RENDERING (Fixes the conflict) ---
+    function renderMessageRow(text, role, id = null) {
+        const chatWindow = document.getElementById('chat-window');
+        const msgId = id || "msg-" + Date.now() + Math.random().toString(16).slice(2);
         const row = document.createElement('div');
-        row.className = `message-row ${sender}-row`;
+        row.className = `message-row ${role === 'user' ? 'user-row' : 'ai-row'}`;
+        
+        // We use data-attributes instead of onclick to work with the listener above
+        const copyBtn = `<button class="action-btn" data-action="copy" data-target="${msgId}"><span>📋</span> Copy</button>`;
+        const editBtn = role === 'user' ? `<button class="action-btn" data-action="edit" data-target="${msgId}"><span>✏️</span> Edit</button>` : '';
+
         row.innerHTML = `
-            <div class="avatar">${sender === 'user' ? 'U' : 'AI'}</div>
-            <div class="content ${isThinking ? 'typing' : ''}" id="${id}">
-                ${sender === 'user' ? text : (isThinking ? 'AI is thinking...' : marked.parse(text))}
+            <div class="avatar">${role === 'user' ? 'U' : 'AI'}</div>
+            <div class="msg-container" style="max-width: 80%;">
+                <div class="content" id="${msgId}">${role === 'user' ? text : marked.parse(text)}</div>
+                <div class="message-actions">${editBtn}${copyBtn}</div>
             </div>
         `;
         
         chatWindow.appendChild(row);
         chatWindow.scrollTop = chatWindow.scrollHeight;
-        return id;
+        return msgId;
+    }
+
+    // Action Handler
+    function handleAction(type, id) {
+        const el = document.getElementById(id);
+        if (!el) return;
+
+        if (type === 'copy') {
+            const textToCopy = el.innerText;
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                const btn = event.currentTarget;
+                const originalText = btn.innerHTML;
+                btn.innerHTML = "✅ Copied!";
+                setTimeout(() => btn.innerHTML = originalText, 1500);
+            });
+        } 
+        else if (type === 'edit') {
+            const inputField = document.getElementById('user-input');
+            inputField.value = el.innerText;
+            inputField.focus();
+            autoGrow(inputField);
+        }
+    }
+
+    // Helper for live messages (used in send function)
+    function addMsg(text, sender, isThinking = false) {
+        const msgId = renderMessageRow(isThinking ? 'AI is processing...' : text, sender);
+        if (isThinking) document.getElementById(msgId).classList.add('typing');
+        return msgId;
     }
 
     function updateMsg(id, text) {
         const el = document.getElementById(id);
-        if (!el) return;
-        el.classList.remove('typing');
-        el.innerHTML = marked.parse(text); 
-        document.getElementById('chat-window').scrollTop = document.getElementById('chat-window').scrollHeight;
+        if (el) {
+            el.classList.remove('typing');
+            el.innerHTML = marked.parse(text);
+            document.getElementById('chat-window').scrollTop = document.getElementById('chat-window').scrollHeight;
+        }
     }
 
-    // Handle Enter key (Shift+Enter for new line)
-    document.getElementById('user-input').addEventListener('keydown', function(e) {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            send();
+    // --- SIDEBAR & THEME ---
+    function renderSidebar(threads) {
+        const list = document.getElementById('history-list');
+        list.innerHTML = '';
+        threads.forEach(thread => {
+            const item = document.createElement('div');
+            item.className = 'history-item';
+            item.id = `item-${thread.id}`;
+            item.innerHTML = `<span>${thread.title}</span>`; 
+            item.onclick = () => loadChat(thread.id);
+            list.appendChild(item);
+        });
+    }
+
+    async function loadChat(id) {
+        convId = id;
+        document.querySelectorAll('.history-item').forEach(el => el.classList.remove('active'));
+        const activeItem = document.getElementById(`item-${id}`);
+        if(activeItem) activeItem.classList.add('active');
+
+        const chatWindow = document.getElementById('chat-window');
+        chatWindow.innerHTML = '<div class="typing">Syncing with database...</div>';
+
+        try {
+            const res = await fetch(`http://127.0.0.1:8000/api/v1/history/${id}`);
+            const data = await res.json();
+            chatWindow.innerHTML = ''; 
+            data.history.forEach(msg => renderMessageRow(msg.content, msg.role));
+        } catch (error) {
+            chatWindow.innerHTML = '<div class="content">⚠️ Failed to load.</div>';
         }
+    }
+
+    function startNewChat() {
+        convId = 'conv_' + Date.now();
+        document.querySelectorAll('.history-item').forEach(el => el.classList.remove('active'));
+        const chatWindow = document.getElementById('chat-window');
+        chatWindow.innerHTML = '';
+        renderMessageRow("New session started. I'm ready for your next command.", 'ai');
+    }
+
+    async function send() {
+        const inputField = document.getElementById('user-input');
+        const text = inputField.value.trim();
+        if (!text) return;
+        
+        renderMessageRow(text, 'user');
+        inputField.value = '';
+        autoGrow(inputField);
+
+        const aiMsgId = addMsg('Thinking...', 'ai', true);
+        const idToSend = (convId && convId.startsWith('conv_')) ? null : convId;
+
+        try {
+            const res = await fetch('http://127.0.0.1:8000/api/v1/converse', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    prompt: text, 
+                    conversation_id: idToSend, 
+                    manager_id: String(MANAGER_ID),
+                    manager_name: managerName,
+                    agent_id: DYNAMIC_AGENT_ID
+                })
+            });
+
+            const data = await res.json();
+            if (data.conversation_id) convId = data.conversation_id;
+            updateMsg(aiMsgId, data.response?.message || "Processed.");
+            loadManagerThreads(); 
+        } catch (error) {
+            updateMsg(aiMsgId, `⚠️ ${error.message}`);
+        }
+    }
+
+    function autoGrow(element) {
+        element.style.height = "5px";
+        element.style.height = (element.scrollHeight) + "px";
+    }
+
+    document.getElementById('user-input').addEventListener('keydown', e => {
+        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
     });
+
+    function toggleTheme() {
+        const body = document.body;
+        if (body.getAttribute('data-theme') === 'dark') {
+            body.removeAttribute('data-theme');
+            localStorage.setItem('theme', 'light');
+        } else {
+            body.setAttribute('data-theme', 'dark');
+            localStorage.setItem('theme', 'dark');
+        }
+    }
 </script>
 </body>
 </html>
