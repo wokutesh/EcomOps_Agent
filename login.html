@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manager Login | EcomOps AI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-glow: rgba(99, 102, 241, 0.4);
+            --bg: #0f172a;
+            --glass: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(circle at top right, #1e1b4b, #0f172a);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .form-card {
+            background: var(--glass);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid var(--glass-border);
+            border-radius: 28px;
+            padding: 40px;
+            width: 100%;
+            max-width: 450px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .header { text-align: center; margin-bottom: 32px; }
+        .header h2 { font-family: 'Plus Jakarta Sans'; font-size: 28px; margin-bottom: 8px; }
+        .header p { color: var(--text-dim); font-size: 14px; }
+
+        .section-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--primary);
+            margin: 24px 0 12px;
+            font-weight: 700;
+            display: block;
+        }
+
+        .input-group { position: relative; margin-bottom: 20px; }
+
+        input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 14px 16px;
+            color: white;
+            font-size: 15px;
+            transition: all 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.05);
+            box-shadow: 0 0 15px var(--primary-glow);
+        }
+
+        button {
+            width: 100%;
+            padding: 16px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px var(--primary-glow);
+        }
+
+        button:hover {
+            background: #4f46e5;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px var(--primary-glow);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .footer-links {
+            text-align: center;
+            margin-top: 24px;
+            font-size: 14px;
+            color: var(--text-dim);
+        }
+
+        .footer-links a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .footer-links a:hover { text-decoration: underline; }
+
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 16px;
+            color: var(--text-dim);
+            text-decoration: none;
+            font-size: 13px;
+        }
+
+        .back-link:hover { color: white; }
+    </style>
+</head>
+<body>
+
+<div class="form-card">
+    <div class="header">
+        <h2>Welcome Back</h2>
+        <p>Login to manage your Ecom Operations</p>
+    </div>
+
+    <form id="loginForm">
+        <span class="section-label">Identity Access</span>
+        
+        <div class="input-group">
+            <input type="email" id="email" placeholder="Manager Email" required>
+        </div>
+        
+        <div class="input-group">
+            <input type="password" id="password" placeholder="Password" required>
+        </div>
+
+        <button type="submit" id="submitBtn">Sign In to Dashboard</button>
+    </form>
+
+    <div class="footer-links">
+        Don't have an account? <a href="form.html">Register here</a>
+    </div>
+    
+    <a href="index.html" class="back-link">← Cancel and return</a>
+</div>
+
+<script>
+    document.getElementById('loginForm').onsubmit = async (e) => {
+        e.preventDefault();
+        
+        const submitBtn = document.getElementById('submitBtn');
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+
+        // Visual Feedback
+        submitBtn.disabled = true;
+        submitBtn.innerText = "Authenticating...";
+
+        try {
+            const response = await fetch('http://127.0.0.1:8000/api/v1/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                // Save session details
+                localStorage.setItem('current_manager_id', data.manager_id);
+                localStorage.setItem('current_manager_name', data.name);
+                
+                // Redirect to main app
+                window.location.href = 'index.html'; 
+            } else {
+                alert('❌ ' + (data.detail || 'Login failed. Please check your credentials.'));
+            }
+        } catch (error) {
+            console.error("Auth Error:", error);
+            alert("❌ Connection failed. Check if the server is running.");
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.innerText = "Sign In to Dashboard";
+        }
+    };
+</script>
+
+</body>
+</html>
