@@ -125,15 +125,22 @@
             <div class="input-group">
                 <input type="text" id="company_name" placeholder="Company / Organization" required>
             </div>
-
+            <div class="input-group">
+                <label>Email Address</label>
+                <input type="email" id="mgr-email" placeholder="manager@company.com" required>
+            </div>
+            <div class="input-group">
+                <label>Set Password</label>
+                <input type="password" id="mgr-password" placeholder="••••••••" required>
+            </div>
             <span class="section-label">Database Configuration (Direct Link)</span>
             <div class="input-group">
-                <input type="text" id="db_host" placeholder="Database Host (e.g. db.project.co)" required>
+                <input type="text" id="db_host" placeholder="Database Host" required>
             </div>
             
             <div class="grid">
                 <div class="input-group">
-                    <input type="text" id="db_username" placeholder="DB Username" required>
+                    <input type="text" id="db_user" placeholder="DB user" required>
                 </div>
                 <div class="input-group">
                     <input type="password" id="db_pass" placeholder="DB Password" required>
@@ -167,12 +174,15 @@
 
         // 2. Prepare the data (ensure keys match your FastAPI Pydantic model)
         const formData = {
-            manager_id: document.getElementById('full_name').value.toLowerCase().replace(/\s+/g, '_'),
+            //manager_id: document.getElementById('full_name').value.toLowerCase().replace(/\s+/g, '_'),
             full_name: document.getElementById('full_name').value,
+            company_name: document.getElementById('company_name').value,
+            email: document.getElementById('mgr-email').value,
+            password: document.getElementById('mgr-password').value,
             db_host: document.getElementById('db_host').value,
             db_port: parseInt(document.getElementById('db_port').value),
             db_name: document.getElementById('db_name').value,
-            db_user: document.getElementById('db_username').value, // Matches HTML ID
+            db_user: document.getElementById('db_user').value, // Matches HTML ID
             db_pass: document.getElementById('db_pass').value
         };
 
@@ -189,9 +199,13 @@
             const result = await response.json();
 
             if (response.ok) {
-                alert('✅ Agent Profile Created Successfully!');
-                window.location.href = 'index.html'; // Redirect to home
-            } else {
+                // result.manager_id is the UUID Supabase just generated
+                localStorage.setItem('current_manager_id', result.manager_id);
+                localStorage.setItem('current_manager_name', formData.full_name);
+                
+                alert('✅ Registration Successful!');
+                window.location.href = 'login.html';
+                        } else {
                 // Show the specific error from FastAPI
                 alert('❌ Registration Failed: ' + (result.detail || 'Unknown error'));
             }
