@@ -356,6 +356,11 @@ async function saveProfile() {
     async function send() {
         const inputField = document.getElementById('user-input');
         const text = inputField.value.trim();
+
+        function scrollToBottom() {
+            const chatWindow = document.getElementById('chat-window');
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        }
         if (!text) return;
         
         renderMessageRow(text, 'user');
