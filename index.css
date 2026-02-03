@@ -36,7 +36,9 @@
         background-color: var(--bg-main);
         color: var(--text-main);
         display: flex;
-        height: 100vh;
+        height: 100vh; /* Lock the screen height */
+        margin: 0;
+        overflow: hidden;
     }
 
     /* --- Message Row Structure --- */
@@ -125,33 +127,34 @@
         display: flex;
         flex-direction: column;
         padding: 24px 16px;
+        height: 100%;
+        
     }
 
     .theme-toggle {
-        margin-top: auto;
-        padding: 12px;
-        border-radius: 10px;
-        border: 1px solid var(--border-color);
-        background: transparent;
-        color: var(--text-main);
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 10px;
-        font-weight: 600;
-        font-size: 13px;
-    }
+    margin-top: auto; /* Pushes to bottom */
+    flex-shrink: 0;   /* Stays fixed at the bottom */
+    width: 100%;
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+    background: transparent;
+    color: var(--text-main);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-weight: 600;
+    font-size: 13px;
+    padding: 14px;
+}
     /* --- Enhanced Sidebar History --- */
     .history-label {
-        font-size: 11px;         /* Small and sophisticated */
-        font-weight: 700;       /* Bold to stand out despite size */
-        text-transform: uppercase;
-        letter-spacing: 0.08em; /* Added spacing for better legibility */
-        color: var(--text-muted);
-        margin: 24px 12px 10px 16px;
-        opacity: 0.6;
-    }
+    padding: 0 5px 10px 5px;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    flex-shrink: 0;
+}
 
     /* The individual chat thread titles */
     .history-item {
@@ -191,13 +194,39 @@
         filter: grayscale(1);
         opacity: 0.5;
     }
-
+    .history-list {
+    flex: 1;           /* Takes up all remaining space */
+    overflow-y: auto;  /* ENABLES SCROLLING HERE */
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+    .history-list::-webkit-scrollbar {
+    width: 4px;
+        }
+        .history-list::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 10px;
+        }
     .history-item:hover {
         background: var(--sidebar-hover);
         color: var(--text-main);
         transform: translateX(4px);
     }
-    /* --- Top Bar Layout --- */
+
+    .new-chat-btn {
+    flex-shrink: 0; /* Won't get squashed */
+    background: var(--bg-sidebar); 
+    color: var(--text-main); 
+    border: 1px solid var(--border-color); 
+    border-radius: 12px; 
+    padding: 14px; 
+    margin-bottom: 20px; 
+    cursor: pointer;
+    font-weight: 600;
+}
+    /* -- Top Bar Layout --- */
 .top-bar {
     display: flex;
     justify-content: space-between;
