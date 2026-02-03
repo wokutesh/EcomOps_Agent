@@ -6,451 +6,7 @@
     <title>EcomOps AI | Command Center</title>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <style>
-    :root {
-        /* Light Theme (Default) */
-        --bg-main: #f8fafc;
-        --bg-sidebar: #ffffff;
-        --sidebar-hover: #f1f5f9;
-        --accent-primary: #10a37f;
-        --accent-user: #6366f1;
-        --text-main: #1e293b;
-        --text-muted: #64748b;
-        --border-color: #e2e8f0;
-        --glass: rgba(255, 255, 255, 0.9);
-        --input-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
-    }
-
-    [data-theme="dark"] {
-        /* Dark Theme */
-        --bg-main: #0b0f1a;
-        --bg-sidebar: #05070a;
-        --sidebar-hover: #161b26;
-        --accent-primary: #10a37f;
-        --accent-user: #4f46e5;
-        --text-main: #f1f5f9;
-        --text-muted: #94a3b8;
-        --border-color: #1e293b;
-        --glass: rgba(15, 23, 42, 0.8);
-        --input-shadow: 0 20px 50px rgba(0,0,0,0.5);
-    }
-
-    * { margin: 0; padding: 0; box-sizing: border-box; transition: background-color 0.3s, color 0.3s; }
-
-    body {
-        font-family: 'Inter', sans-serif;
-        background-color: var(--bg-main);
-        color: var(--text-main);
-        display: flex;
-        height: 100vh;
-    }
-
-    /* --- Message Row Structure --- */
-    .message-row {
-        max-width: 850px;
-        margin: 0 auto 32px auto;
-        display: flex;
-        gap: 16px;
-        animation: fadeIn 0.3s ease;
-    }
-
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-
-    /* --- User: Right Aligned & Colored --- */
-    .user-row {
-        flex-direction: row-reverse;
-    }
-
-    .user-row .content {
-        background: var(--accent-user);
-        color: white;
-        border-radius: 18px 18px 2px 18px; /* Rounded corners with one sharp edge */
-        padding: 14px 20px;
-        box-shadow: 0 4px 15px rgba(99, 102, 241, 0.2);
-        border: none;
-        max-width: 70%;
-    }
-
-    /* --- AI: Left Aligned & Clean --- */
-    .ai-row .content {
-        background: var(--bg-sidebar);
-        color: var(--text-main);
-        border-radius: 18px 18px 18px 2px;
-        padding: 18px 24px;
-        border: 1px solid var(--border-color);
-        box-shadow: 0 2px 10px rgba(0,0,0,0.02);
-        line-height: 1.7;
-    }
-
-    /* --- Avatars --- */
-    .avatar {
-        width: 36px;
-        height: 36px;
-        border-radius: 10px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 11px;
-        font-weight: 800;
-        flex-shrink: 0;
-        align-self: flex-end; /* Keeps avatar at the bottom of long messages */
-    }
-
-    .ai-row .avatar { 
-        background: var(--accent-primary); 
-        color: white;
-        box-shadow: 0 4px 10px rgba(16, 163, 127, 0.3);
-    }
-
-    .user-row .avatar { 
-        background: #ffffff; 
-        color: var(--accent-user);
-        border: 2px solid var(--accent-user);
-    }
-
-    /* --- Markdown Styling inside AI Responses --- */
-    .content p { margin-bottom: 12px; }
-    .content code {
-        background: rgba(0,0,0,0.1);
-        padding: 2px 6px;
-        border-radius: 4px;
-        font-family: 'Courier New', monospace;
-        font-size: 0.9em;
-    }
-    [data-theme="dark"] .content code { background: rgba(255,255,255,0.1); }
-    /* --- Sidebar & Toggle --- */
-    .sidebar {
-        width: 260px;
-        background-color: var(--bg-sidebar);
-        border-right: 1px solid var(--border-color);
-        display: flex;
-        flex-direction: column;
-        padding: 24px 16px;
-    }
-
-    .theme-toggle {
-        margin-top: auto;
-        padding: 12px;
-        border-radius: 10px;
-        border: 1px solid var(--border-color);
-        background: transparent;
-        color: var(--text-main);
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 10px;
-        font-weight: 600;
-        font-size: 13px;
-    }
-    /* --- Enhanced Sidebar History --- */
-    .history-label {
-        font-size: 11px;         /* Small and sophisticated */
-        font-weight: 700;       /* Bold to stand out despite size */
-        text-transform: uppercase;
-        letter-spacing: 0.08em; /* Added spacing for better legibility */
-        color: var(--text-muted);
-        margin: 24px 12px 10px 16px;
-        opacity: 0.6;
-    }
-
-    /* The individual chat thread titles */
-    .history-item {
-        font-size: 13.5px;      /* Standard readable size for links */
-        font-weight: 500;       /* Medium weight for clarity */
-        line-height: 1.4;
-        color: var(--text-muted);
-        padding: 10px 16px;
-    }
-
-    /* Hover state for titles */
-    .history-item:hover {
-        color: var(--text-main);
-        font-size: 13.5px;      /* Keep size consistent to prevent "jitter" */
-    }
-
-    /* Active chat title */
-    .history-item.active {
-        font-size: 13.5px;
-        font-weight: 600;       /* Slightly bolder to show it's selected */
-        color: var(--accent-primary);
-    }
-
-    /* Truncated text inside the span */
-    .history-item span {
-        font-size: inherit;     /* Inherits the 13.5px from parent */
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-    /* Add a subtle icon before the text */
-    .history-item::before {
-        content: '💬';
-        font-size: 12px;
-        filter: grayscale(1);
-        opacity: 0.5;
-    }
-
-    .history-item:hover {
-        background: var(--sidebar-hover);
-        color: var(--text-main);
-        transform: translateX(4px);
-    }
-    /* --- Top Bar Layout --- */
-.top-bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 16px 40px;
-    background: var(--glass);
-    backdrop-filter: blur(10px);
-    border-bottom: 1px solid var(--border-color);
-    position: sticky;
-    top: 0;
-    z-index: 100;
-}
-
-.top-nav {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 24px;
-    height: 60px;
-    background: var(--bg-main); /* Match main background */
-    border-bottom: 1px solid var(--border-color);
-    position: sticky;
-    top: 0;
-    z-index: 100;
-}
-
-.model-badge {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--text-muted);
-    background: var(--sidebar-hover);
-    padding: 4px 10px;
-    border-radius: 8px;
-}
-
-.profile-trigger {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    cursor: pointer;
-    padding: 6px 8px;
-    border-radius: 10px;
-    transition: background 0.2s ease;
-}
-
-.profile-trigger:hover {
-    background: var(--sidebar-hover);
-}
-
-.mgr-info #mgr-display-name {
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--text-main);
-}
-
-.top-nav .avatar {
-    width: 32px;
-    height: 32px;
-    background: var(--accent-user);
-    color: white;
-    font-size: 14px;
-    border-radius: 50%; /* Circular for standard look */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-}
-
-/* Ensure the chat window accounts for the sticky header */
-.chat-window {
-    padding-top: 20px !important;
-}
-.profile-trigger {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    cursor: pointer;
-    padding: 6px 12px;
-    border-radius: 12px;
-    transition: 0.2s;
-}
-
-.profile-trigger:hover { background: var(--sidebar-hover); }
-
-.mgr-info { text-align: right; }
-.mgr-info span { display: block; font-weight: 600; font-size: 14px; }
-.mgr-info small { color: var(--text-muted); font-size: 11px; }
-
-/* --- Password Update Design --- */
-.update-section {
-    background: rgba(255, 255, 255, 0.03);
-    padding: 20px;
-    border-radius: 16px;
-    border: 1px solid var(--border-color);
-    margin-top: 20px;
-}
-
-.password-box {
-    display: flex;
-    gap: 8px;
-    margin-top: 8px;
-}
-
-.password-box input {
-    flex: 1;
-    background: var(--bg-main);
-    padding: 10px 14px;
-    border-radius: 8px;
-}
-
-.save-btn {
-    background: var(--accent-primary);
-    color: white;
-    border: none;
-    padding: 0 16px;
-    border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: 0.2s;
-}
-
-.save-btn:hover { background: #0e8c6d; }
-
-.helper-text { font-size: 11px; color: var(--text-muted); margin-top: 8px; }
-
-.modal-footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 30px;
-}
-
-.logout-link { background: none; border: none; color: #ef4444; cursor: pointer; font-weight: 600; font-size: 13px; }
-.close-btn { background: var(--sidebar-hover); border: none; color: var(--text-main); padding: 8px 16px; border-radius: 8px; cursor: pointer; }
-
-/* Avatar Large */
-.avatar-large {
-    width: 70px; height: 70px;
-    background: var(--accent-user);
-    color: white;
-    border-radius: 20px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 28px; font-weight: 800;
-    margin: 0 auto 16px;
-}
-    .history-item.active {
-        background: var(--sidebar-hover);
-        color: var(--accent-primary);
-        font-weight: 600;
-        border-color: var(--border-color);
-    }
-
-    /* The Active Indicator Strip */
-    .history-item.active::after {
-        content: '';
-        position: absolute;
-        left: 0;
-        top: 25%;
-        height: 50%;
-        width: 3px;
-        background: var(--accent-primary);
-        border-radius: 0 4px 4px 0;
-    }
-
-    .history-item span {
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        display: block;
-    }
-
-    /* --- Message Action Toolbar --- */
-   .message-actions {
-        display: flex;
-        gap: 12px;
-        margin-top: 8px;
-        opacity: 0;
-        transition: opacity 0.2s ease, transform 0.2s ease;
-        transform: translateY(5px);
-    }
-
-    .message-row:hover .message-actions {
-        opacity: 1;
-        transform: translateY(0);
-    }
-
-    .action-btn {
-        background: none;
-        border: none;
-        color: var(--text-muted);
-        cursor: pointer;
-        font-size: 11px;
-        font-weight: 600;
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        padding: 4px 8px;
-        border-radius: 6px;
-        transition: 0.2s;
-    }
-
-    .action-btn:hover {
-        background: var(--sidebar-hover);
-        color: var(--accent-primary);
-    }
-
-    /* --- Profile Modal Styles --- */
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.4);
-    backdrop-filter: blur(8px);
-    display: none; /* Hidden by default */
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-}
-
-.profile-card {
-    background: var(--bg-sidebar);
-    border: 1px solid var(--border-color);
-    padding: 32px;
-    border-radius: 24px;
-    width: 90%;
-    max-width: 400px;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.2);
-    animation: modalIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-@keyframes modalIn {
-    from { opacity: 0; transform: scale(0.95); }
-    to { opacity: 1; transform: scale(1); }
-}
-
-.profile-card .header { text-align: center; margin-bottom: 24px; }
-    .user-row .message-actions { flex-direction: row-reverse; }
-    /* --- Markdown Spacing --- */
-
-    .content p { margin-bottom: 8px; }
-    .content p:last-child { margin-bottom: 0; }
-    /* --- Rest of Styles (Abbreviated for focus) --- */
-    .new-chat-btn { background: var(--bg-sidebar); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 12px; padding: 14px; margin-bottom: 32px; cursor: pointer; }
-    .history-item.active { background: var(--sidebar-hover); color: var(--accent-primary); border-left: 3px solid var(--accent-primary); }
-    .main-content { flex: 1; display: flex; flex-direction: column; }
-    .chat-window { flex: 1; overflow-y: auto; padding: 60px 20px; }
-    .input-box { background: var(--glass); border: 1px solid var(--border-color); border-radius: 16px; padding: 12px 18px; display: flex; box-shadow: var(--input-shadow); }
-    textarea { flex: 1; background: transparent; border: none; outline: none; color: var(--text-main); }
-</style>
+    <link rel="stylesheet" href="index.css">
 </head>
 <body>
     <div class="sidebar">
@@ -463,19 +19,21 @@
         </button>
     </div>
 
-    <div class="main-content">
+        <div class="main-content">
         <header class="top-nav">
-        <div class="model-info">
-            <span class="model-badge">EcomOps v1.0</span>
-        </div>
-        
-        <div class="profile-trigger" onclick="openProfile()">
-            <div class="mgr-info">
-                <span id="mgr-display-name">Manager</span>
+            <div class="model-info">
+                <span class="model-badge">EcomOps v1.0</span>
             </div>
-           
-        </div>
-    </header>
+            
+            <div class="profile-trigger" onclick="openProfile()">
+                <div class="mgr-info">
+                    <span id="mgr-display-name">Manager Name</span>
+                    <small id="mgr-display-email">manager@ecomops.ai</small>
+                </div>
+                <div class="avatar-circle" id="nav-avatar">M</div>
+            </div>
+        </header>
+
         <div id="chat-window" class="chat-window"></div>
 
         <div class="input-wrapper">
@@ -487,30 +45,38 @@
             </div>
         </div>
     </div>
-   
 
-
-
-<div id="profile-overlay" class="modal-overlay" onclick="closeProfile(event)">
-    <div class="profile-card" onclick="event.stopPropagation()">
-        <div class="profile-header">
-           
-            <h2 id="profile-name">Full Name</h2>
-            
-        </div>
-
-        <div class="update-section">
-            <span class="section-label">Security Update</span>
-            <div class="password-box">
-                <input type="password" id="new-password" placeholder="Enter new password">
-                <button class="save-btn" onclick="saveProfile()">Update</button>
+   <div id="profile-overlay" class="modal-overlay" onclick="closeProfile(event)">
+    <div class="gemini-profile-card" onclick="event.stopPropagation()">
+        <div class="gemini-identity">
+            <div class="gemini-avatar-wrapper">
+                <div class="avatar-huge" id="modal-avatar">M</div>
+                <button class="avatar-edit-icon">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+                </button>
             </div>
-            <p class="helper-text">Password must be at least 8 characters long.</p>
+            <h2 id="profile-name">Manager Name</h2>
+            <p id="profile-email">manager@ecomops.ai</p>
+            <button class="manage-account-btn">Manage your EcomOps Account</button>
         </div>
 
-        <div class="modal-footer">
-            <button class="logout-link" onclick="logout()">Sign Out</button>
-            <button class="close-btn" onclick="closeProfile()">Close</button>
+        <div class="gemini-settings-box">
+            <div class="gemini-input-group">
+                <input type="password" id="new-password" placeholder="Change password" oninput="checkNewPasswordStrength()">
+                <button class="gemini-update-btn" id="update-pass-btn" onclick="saveProfile()" disabled>Update</button>
+            </div>
+            <div class="strength-meter-mini"><div id="profile-strength-bar"></div></div>
+        </div>
+
+        <div class="gemini-actions">
+            <button class="gemini-action-pill" onclick="logout()">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                Sign out
+            </button>
+        </div>
+
+        <div class="gemini-footer-links">
+            <span>Privacy Policy</span> • <span>Terms of Service</span>
         </div>
     </div>
 </div>
@@ -522,6 +88,15 @@
     const DYNAMIC_AGENT_ID = urlParams.get('agent') || "ecomops_master";
     let convId = null;
 
+    function scrollToBottom() {
+    const chatWindow = document.getElementById('chat-window');
+    chatWindow.scrollTop = chatWindow.scrollHeight;
+}
+
+function autoGrow(element) {
+    element.style.height = "5px"; // Reset height to recalculate
+    element.style.height = (element.scrollHeight) + "px";
+}
      document.addEventListener('click', function(e) {
         const btn = e.target.closest('.action-btn');
         if (!btn) return;
@@ -564,6 +139,26 @@
         if (savedTheme === 'dark') toggleTheme();
     };
 
+    function checkNewPasswordStrength() {
+    const pass = document.getElementById('new-password').value;
+    const bar = document.getElementById('profile-strength-bar');
+    const btn = document.getElementById('update-pass-btn');
+    
+    // Requirements: 8 chars, 1 uppercase, 1 number, 1 symbol
+    const hasLen = pass.length >= 8;
+    const hasSpecial = /[A-Z]/.test(pass) && /[0-9]/.test(pass) && /[^A-Za-z0-9]/.test(pass);
+
+    // Update Strength Bar Width
+    let score = 0;
+    if (hasLen) score += 50;
+    if (hasSpecial) score += 50;
+    
+    bar.style.width = score + "%";
+    bar.style.background = score === 100 ? "#10a37f" : "#f59e0b";
+
+    // IMPORTANT: This enables the button
+    btn.disabled = !(hasLen && hasSpecial);
+}
     async function loadManagerThreads() {
         const res = await fetch(`http://127.0.0.1:8000/api/v1/threads/${MANAGER_ID}`);
         const data = await res.json();
@@ -614,34 +209,36 @@ function logout() {
 }
 
 async function saveProfile() {
-    const btn = document.querySelector('.save-btn');
-    const newPwd = document.getElementById('new-password').value;
-    
-    if (newPwd.length < 8) {
-        alert("Password must be at least 8 characters!");
-        return;
-    }
+    const newPassword = document.getElementById('new-password').value;
+    const managerId = localStorage.getItem('current_manager_id');
+    const btn = document.getElementById('update-pass-btn');
 
-    btn.innerText = "Saving...";
+    // 1. Visual feedback
+    btn.innerText = "Updating...";
     btn.disabled = true;
 
     try {
-        const res = await fetch(`http://127.0.0.1:8000/api/v1/manager/update-password`, {
+        const response = await fetch(`http://127.0.0.1:8000/api/v1/manager/update-password`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                manager_id: MANAGER_ID, 
-                new_password: newPwd 
+            body: JSON.stringify({
+                manager_id: managerId,
+                new_password: newPassword
             })
         });
 
-        if (res.ok) {
-            alert("✅ Password updated successfully!");
-            document.getElementById('new-password').value = '';
-            closeProfile();
+        const data = await response.json();
+
+        if (response.ok) {
+            alert("Password updated successfully!");
+            document.getElementById('new-password').value = ""; // Clear input
+            closeProfile(); // Close the Gemini modal
+        } else {
+            alert("Error: " + data.detail);
         }
-    } catch (e) {
-        alert("Server error.");
+    } catch (error) {
+        console.error("Update failed:", error);
+        alert("Server connection failed.");
     } finally {
         btn.innerText = "Update";
         btn.disabled = false;
@@ -809,6 +406,76 @@ async function saveProfile() {
             localStorage.setItem('theme', 'dark');
         }
     }
+
+   async function loadManagerDetails() {
+    const managerId = localStorage.getItem('current_manager_id');
+    if (!managerId) return;
+
+    try {
+        const response = await fetch(`http://127.0.0.1:8000/api/v1/manager/profile/${managerId}`);
+        const data = await response.json();
+
+        if (response.ok) {
+            // 1. Update the Top Nav (Header)
+            const navName = document.getElementById('mgr-display-name');
+            const navEmail = document.getElementById('mgr-display-email');
+            
+            if(navName) navName.innerText = data.full_name;
+            if(navEmail) navEmail.innerText = data.email; // Sets the small email in header
+
+            // 2. Update the Profile Modal
+            const modalName = document.getElementById('profile-name');
+            const modalEmail = document.getElementById('profile-email');
+            
+            if(modalName) modalName.innerText = data.full_name;
+            if(modalEmail) modalEmail.innerText = data.email; // Sets the email in the modal card
+
+            // 3. Update Avatars
+            const initial = data.full_name.charAt(0).toUpperCase();
+            document.getElementById('nav-avatar').innerText = initial;
+            document.getElementById('modal-avatar').innerText = initial;
+
+        } else {
+            console.error("Server returned error:", data.detail);
+        }
+    } catch (error) {
+        console.error("Network Error:", error);
+    }
+}
+
+// Call this when the window loads
+window.onload = loadManagerDetails;
+
+function logout() {
+    // 1. Optional: Call backend to invalidate token if using blacklisting
+    // const token = localStorage.getItem('token');
+    // await fetch('http://127.0.0.1:8000/api/v1/logout', { method: 'POST', ... });
+
+    // 2. Clear all sensitive manager data from storage
+    const itemsToRemove = [
+        'current_manager_id', 
+        'current_manager_name', 
+        'access_token', 
+        'user_theme'
+    ];
+    
+    itemsToRemove.forEach(item => localStorage.removeItem(item));
+
+    // 3. Optional: Clear session storage if you used it for temporary chat history
+    sessionStorage.clear();
+
+    // 4. Redirect to login or landing page
+    // We use replace() so the user cannot click 'Back' to return to the dashboard
+    window.location.replace('login.html');
+}
+
+(function() {
+    const managerId = localStorage.getItem('current_manager_id');
+    if (!managerId) {
+        // If no ID is found, they aren't logged in. Boot them out.
+        window.location.replace('login.html');
+    }
+})();
 </script>
 </body>
 </html>
