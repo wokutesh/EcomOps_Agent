@@ -9,12 +9,12 @@ def get_conn(h, u, p, db, prt):
 
 
 @mcp.tool()
-def get_activity_summary(manager_id: str, timeframe: str = "daily"):
+def get_activity_summary(host, user, password, db_name, port, manager_id: str, timeframe: str = "daily"):
     """
     Manager Tool: Provides a real-time summary of database activities (transactions, 
     modifications, compliance) across the entire system for a specific manager.
     """
-    conn = get_conn() # Uses your existing connection logic
+    conn = get_conn(host, user, password, db_name, port)
     try:
         with conn.cursor() as cursor:
             # We use the 'global_activity_feed' view which unions all your activity tables
@@ -53,13 +53,13 @@ def get_activity_summary(manager_id: str, timeframe: str = "daily"):
         conn.close()
         
 @mcp.tool()
-def get_recent_activity(manager_id: str, limit: int = 10, category: str = None):
+def get_recent_activity(host, user, password, db_name, port,manager_id: str, limit: int = 10, category: str = None):
     """
     Incident Investigation Tool: Returns a detailed trace of recent system changes.
     Use this to audit trails, investigate unexpected changes, or track specific incidents.
     - category: Optional filter (e.g., 'TRANSACTION', 'INVENTORY', 'SECURITY')
     """
-    conn = get_master_db_conn()
+    conn = get_conn(host, user, password, db_name, port)
     try:
         with conn.cursor() as cursor:
             # Base query targeting the audit trace
@@ -108,13 +108,13 @@ def get_recent_activity(manager_id: str, limit: int = 10, category: str = None):
         conn.close()
         
 @mcp.tool()
-def get_user_activity(manager_id: str, staff_identifier: str, days_back: int = 7):
+def get_user_activity(host, user, password, db_name, port,manager_id: str, staff_identifier: str, days_back: int = 7):
     """
     Accountability Tool: Inspects the behavior of a specific employee or contractor.
     Use this for privileged user reviews or monitoring contractor activity.
     - staff_identifier: Can be the Staff Name or Staff ID.
     """
-    conn = get_master_db_conn()
+    conn = get_conn(host, user, password, db_name, port)
     try:
         with conn.cursor() as cursor:
             # Flexible search for Name or ID
@@ -158,13 +158,13 @@ def get_user_activity(manager_id: str, staff_identifier: str, days_back: int = 7
         conn.close()
         
 @mcp.tool()
-def get_data_modifications(manager_id: str, table_name: str = None, action_type: str = None, limit: int = 20):
+def get_data_modifications(host, user, password, db_name, port,manager_id: str, table_name: str = None, action_type: str = None, limit: int = 20):
     """
     Data Integrity Tool: Tracks specific INSERT, UPDATE, and DELETE operations.
     Use this for change approval audits, checking data integrity, or rollback investigations.
     - action_type: 'INSERT', 'UPDATE', or 'DELETE'
     """
-    conn = get_master_db_conn()
+    conn = get_conn(host, user, password, db_name, port)
     try:
         with conn.cursor() as cursor:
             # We query the system_audit_logs focusing on data state changes
@@ -212,12 +212,12 @@ def get_data_modifications(manager_id: str, table_name: str = None, action_type:
         conn.close()
         
 @mcp.tool()
-def get_active_connections(manager_id: str):
+def get_active_connections(host, user, password, db_name, port,manager_id: str):
     """
     Live Health Tool: Inspects current database load and connection status.
     Use this to detect capacity issues, connection leaks, or system slowness.
     """
-    conn = get_master_db_conn()
+    conn = get_conn(host, user, password, db_name, port)
     try:
         with conn.cursor() as cursor:
             # We query the internal postgres stats table
@@ -272,12 +272,12 @@ def get_active_connections(manager_id: str):
         conn.close()
         
 @mcp.tool()
-def get_slow_queries(manager_id: str, limit: int = 5):
+def get_slow_queries(host, user, password, db_name, port,manager_id: str, limit: int = 5):
     """
     Performance Tool: Identifies database bottlenecks and slow-running queries.
     Use this for root-cause analysis of system slowness and SLA enforcement.
     """
-    conn = get_master_db_conn()
+    conn = get_conn(host, user, password, db_name, port)
     try:
         with conn.cursor() as cursor:
             # We look for queries that take the most cumulative time
@@ -322,12 +322,12 @@ def get_slow_queries(manager_id: str, limit: int = 5):
         conn.close()
     
 @mcp.tool()
-def get_failed_operations(manager_id: str, limit: int = 10):
+def get_failed_operations(host, user, password, db_name, port,manager_id: str, limit: int = 10):
     """
     Diagnostic Tool: Tracks and reviews database query failures and system errors.
     Use this for incident review, bug investigation, and troubleshooting failed actions.
     """
-    conn = get_master_db_conn()
+    conn = get_conn(host, user, password, db_name, port)
     try:
         with conn.cursor() as cursor:
             query = """
@@ -364,13 +364,14 @@ def get_failed_operations(manager_id: str, limit: int = 10):
         conn.close()
         
 @mcp.tool()
-def get_privileged_activity(manager_id: str, timeframe_days: int = 30):
+def get_privileged_activity(host, user, password, db_name, port,manager_id: str, timeframe_days: int = 30):
     """
     Security Tool: Monitors admin-level access and sensitive system changes.
     Use this for insider threat detection, compliance reporting, and auditing high-level permissions.
     """
-    conn = get_master_db_conn()
+    conn = get_conn(host, user, password, db_name, port)
     try:
+        # Use 'with' to define the cursor
         with conn.cursor() as cursor:
             # We look for high-impact actions like GRANT, REVOKE, ALTER, or access to sensitive tables
             query = """
@@ -409,12 +410,12 @@ def get_privileged_activity(manager_id: str, timeframe_days: int = 30):
         conn.close()
 
 @mcp.tool()
-def detect_anomalous_activity(manager_id: str):
+def detect_anomalous_activity(host, user, password, db_name, port,manager_id: str):
     """
     Risk Detection Tool: Automatically flags unusual database behavior or potential threats.
     Use this for early-warning alerts and identifying automated risk patterns.
     """
-    conn = get_master_db_conn()
+    conn = get_conn(host, user, password, db_name, port)
     try:
         with conn.cursor() as cursor:
             # 1. Check for Volume Anomalies (Spikes in Deletes/Updates)
@@ -477,12 +478,12 @@ def detect_anomalous_activity(manager_id: str):
         conn.close()
         
 @mcp.tool()
-def get_growth_trends(manager_id: str):
+def get_growth_trends(host, user, password, db_name, port,manager_id: str):
     """
     Capacity Planning Tool: Analyzes table size growth and storage consumption.
     Use this for cost forecasting and predicting when database upgrades are needed.
     """
-    conn = get_master_db_conn()
+    conn = get_conn(host, user, password, db_name, port)
     try:
         with conn.cursor() as cursor:
             # This query calculates the size of all public tables in Megabytes
@@ -556,18 +557,20 @@ def track_activity(host, user, password, dbname, port):
 
 @mcp.tool()
 def execute_sql(host, user, password, dbname, port, sql_query):
-    """General Tool: Executes raw SQL. Use for custom queries or data updates."""
+    """General Tool: Executes raw SQL. Returns clear errors if names are wrong."""
     try:
         conn = get_conn(host, user, password, dbname, port)
         with conn.cursor() as cur:
             cur.execute(sql_query)
-            if cur.description: # If it's a SELECT
+            if cur.description: 
                 return str(cur.fetchall())
-            conn.commit() # If it's an UPDATE/INSERT
+            conn.commit()
             return "Operation successful."
-    except Exception as e: return f"Error: {str(e)}"
-    finally: conn.close()
-
+    except Exception as e:
+        # This returns the error to the AI so it knows it guessed the wrong column!
+        return f"SQL Error: {str(e)}. Check schema and try again."
+    finally:
+        if 'conn' in locals(): conn.close()
 @mcp.tool()
 def clone_product_by_name(host, user, password, dbname, port, source_name, new_name):
     """Developer Tool: Clones a product by omitting the ID to avoid unique constraints."""
