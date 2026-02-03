@@ -97,8 +97,8 @@ def verify_password(plain_password, hashed_password):
 
 
 def get_master_db_conn():
-    try:
-        conn = psycopg2.connect(
+    
+    conn = psycopg2.connect(
             host="aws-1-eu-west-1.pooler.supabase.com", 
             database="postgres",
             user="postgres.ghkglgpzemroczxddbul",
@@ -107,12 +107,8 @@ def get_master_db_conn():
             sslmode='require',
             options="-c pgbouncer=true"
         )
-        return conn
-    except Exception as e:
-        print(f"❌ Could not connect to Master DB: {e}")
-        raise e
-
-# --- CORE LOGIC ---
+    return conn
+    
 async def call_mcp_agent(user_prompt, db_creds):
     server_params = StdioServerParameters(command="python", args=["server.py"])
     
@@ -120,40 +116,51 @@ async def call_mcp_agent(user_prompt, db_creds):
         async with ClientSession(read, write) as session:
             await session.initialize()
 
-            # 1. Inspect Schema (so the AI knows the table structure)
-            schema_info = await session.call_tool("inspect_schema", arguments={
-                    "host": db_creds['db_host'], "user": db_creds['db_user'], 
-                    "password": db_creds['db_pass'], "dbname": db_creds['db_name'], "port": db_creds['db_port']
-                })
+            # 1. Inspect Schema
+            schema_resp = await session.call_tool("inspect_schema", arguments={
+                "host": db_creds['db_host'], "user": db_creds['db_user'], 
+                "password": db_creds['db_pass'], "dbname": db_creds['db_name'], "port": db_creds['db_port']
+            })
+            schema_info = schema_resp.content[0].text[:2000]
 
             # 2. Generate the SQL
             sql_gen = groq_client.chat.completions.create(
                 model="llama-3.3-70b-versatile",
-                messages = [
-                    {"role": "system", "content": f"Use this schema: {schema_info.content[0].text}. If looking for cities, check the 'customers' table for the exact column name."},
+                messages=[
+                    {
+                        "role": "system", 
+                        "content": f"You are a strict SQL generator. Use this schema: {schema_info}. Output RAW SQL ONLY."
+                    },
                     {"role": "user", "content": user_prompt}
                 ]
             )
-            clean_sql = sql_gen.choices[0].message.content.replace("```sql", "").replace("```", "").strip()
+            
+            # Clean the SQL
+            raw_sql_text = sql_gen.choices[0].message.content.strip()
+            clean_sql = raw_sql_text.replace("```sql", "").replace("```", "").strip()
+            if "SELECT" in clean_sql.upper():
+                clean_sql = clean_sql[clean_sql.upper().find("SELECT"):]
 
-            # 3. Execute the SQL to get the raw data (the [(3, 'desktop', ...)] part)
-            raw_data = await session.call_tool("execute_sql", arguments={
+            # 3. EXECUTE the SQL (This was the missing link)
+            db_result = await session.call_tool("execute_sql", arguments={
                 "sql_query": clean_sql,
                 "host": db_creds['db_host'], "user": db_creds['db_user'], 
                 "password": db_creds['db_pass'], "dbname": db_creds['db_name'], "port": db_creds['db_port']
             })
             
-            if "Error:" in raw_data.content[0].text:
-                
-                return f"❌ Database"
+            raw_db_data = db_result.content[0].text
+            if len(raw_db_data) > 3000:
+                raw_db_data = raw_db_data[:3000] + "\n... [Data Truncated for brevity] ..."
+
+            # 4. Final Summary with a 'Short' System Prompt
             final_response = groq_client.chat.completions.create(
                 model="llama-3.3-70b-versatile",
                 messages=[
-                    {"role": "system", "content": SYSTEM_PROMPT}, 
-                    {"role": "user", "content": f"The manager asked: {user_prompt}. Here is the raw DB data: {raw_data.content[0].text}. Summarize it."}
+                    {"role": "system", "content": "You are a concise data analyst. Summarize the data provided."}, 
+                    {"role": "user", "content": f"Question: {user_prompt}\nData: {raw_db_data}"}
                 ]
             )
-            
+                        
             return final_response.choices[0].message.content
 
 @app.post("/api/v1/register-manager")
@@ -317,7 +324,10 @@ async def converse(request: EcomOpsRequest):
 
     except Exception as e:
         if conn: conn.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
+        import traceback
+        # THIS WILL PRINT THE ACTUAL ERROR TO YOUR TERMINAL
+        traceback.print_exc() 
+        raise HTTPException(status_code=500, detail=f"Internal Error: {str(e)}")
     finally:
         if conn: conn.close()
 
