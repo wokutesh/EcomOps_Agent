@@ -1,0 +1,186 @@
+:root {
+    --primary: #6366f1;
+    --primary-glow: rgba(99, 102, 241, 0.4);
+    --bg-dark: #020617;
+    --glass: rgba(15, 23, 42, 0.75);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --text-main: #ffffff;
+    --text-dim: #94a3b8;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-dark);
+    /* Professional Mesh Gradient */
+    background-image: 
+        radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.12) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(16, 163, 127, 0.08) 0px, transparent 50%);
+    color: var(--text-main);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 40px 20px;
+    overflow-x: hidden;
+}
+
+/* Reusing the stylish background shapes */
+.shape {
+    position: absolute;
+    filter: blur(100px);
+    z-index: -1;
+    opacity: 0.4;
+    animation: move 25s infinite alternate ease-in-out;
+}
+.shape-1 { width: 500px; height: 500px; background: var(--primary); top: -100px; right: -100px; border-radius: 47% 53% 61% 39% / 45% 51% 49% 55%; }
+.shape-2 { width: 400px; height: 400px; background: #10a37f; bottom: -50px; left: -50px; border-radius: 50%; }
+
+@keyframes move { from { transform: translate(0, 0) rotate(0deg); } to { transform: translate(80px, 80px) rotate(20deg); } }
+
+.form-card {
+    background: var(--glass);
+    backdrop-filter: blur(30px) saturate(160%);
+    border: 1px solid var(--glass-border);
+    border-radius: 32px;
+    padding: 40px;
+    width: 100%;
+    max-width: 650px; /* Increased width to accommodate 2 columns */
+    box-shadow: 0 40px 100px -20px rgba(0, 0, 0, 0.8);
+}
+
+.form-card:hover {
+    border-color: rgba(99, 102, 241, 0.3);
+}
+
+.header { text-align: center; margin-bottom: 40px; }
+.header h2 { font-family: 'Plus Jakarta Sans'; font-size: 32px; font-weight: 800; letter-spacing: -1px; margin-bottom: 12px; }
+.header p { color: var(--text-dim); font-size: 15px; line-height: 1.5; }
+
+.section-label {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--primary);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin: 30px 0 15px;
+}
+
+.section-label::after {
+    content: "";
+    height: 1px;
+    flex-grow: 1;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.input-group { margin-bottom: 24px; }
+.input-group label { display: block; font-size: 13px; font-weight: 600; color: var(--text-dim); margin-bottom: 10px; margin-left: 4px; }
+
+input {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--glass-border);
+    border-radius: 14px;
+    padding: 16px;
+    color: white;
+    font-size: 15px;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+input:focus {
+    outline: none;
+    border-color: var(--primary);
+    background: rgba(99, 102, 241, 0.05);
+    box-shadow: 0 0 20px rgba(99, 102, 241, 0.15);
+}
+
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+button {
+    width: 100%;
+    padding: 18px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 16px;
+    font-weight: 700;
+    font-size: 16px;
+    cursor: pointer;
+    margin-top: 20px;
+    transition: all 0.3s;
+    box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.4);
+}
+
+button:hover {
+    background: var(--primary-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 15px 30px -5px rgba(99, 102, 241, 0.5);
+}
+
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* Two equal columns */
+    gap: 20px;
+}
+
+/* Use this class for items that MUST take full width */
+.full-width {
+    grid-column: span 2;
+}
+
+/* Mobile Responsive: Stack columns on small screens */
+@media (max-width: 600px) {
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+    .full-width {
+        grid-column: span 1;
+    }
+}
+.back-link { display: block; text-align: center; margin-top: 32px; color: var(--text-dim); text-decoration: none; font-size: 14px; opacity: 0.7; transition: 0.2s; }
+.back-link:hover { opacity: 1; color: white; }
+
+/* Strength Meter Polishing */
+.strength-meter { height: 5px; background: rgba(255, 255, 255, 0.05); margin: 12px 0; border-radius: 10px; overflow: hidden; }
+.strength-bar { height: 100%; transition: 0.5s ease; }
+.req-list { display: flex; gap: 12px; font-size: 11px; color: var(--text-dim); list-style: none; }
+
+.password-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.eye-btn {
+    position: absolute;
+    right: 12px;
+    background: none;
+    border: none;
+    padding: 8px;
+    cursor: pointer;
+    color: var(--text-dim);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s;
+    z-index: 10;
+}
+
+.eye-btn:hover {
+    color: var(--primary);
+}
+
+.eye-icon {
+    width: 20px;
+    height: 20px;
+}
+
+/* Ensure input padding doesn't overlap the icon */
+.password-wrapper input {
+    padding-right: 45px;
+}
