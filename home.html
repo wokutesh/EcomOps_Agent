@@ -4,170 +4,58 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EcomOps AI | Intelligent Commerce</title>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --primary: #6366f1;
-            --primary-hover: #4f46e5;
-            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
-            --glass: rgba(255, 255, 255, 0.03);
-            --glass-border: rgba(255, 255, 255, 0.1);
-            --text-main: #f8fafc;
-            --text-dim: #94a3b8;
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background: var(--bg-gradient);
-            background-attachment: fixed;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            color: var(--text-main);
-            overflow: hidden;
-        }
-
-        /* Animated Background Blobs */
-        .blob {
-            position: absolute;
-            width: 500px;
-            height: 500px;
-            background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 70%);
-            border-radius: 50%;
-            z-index: -1;
-            filter: blur(60px);
-            animation: move 20s infinite alternate;
-        }
-
-        @keyframes move {
-            from { transform: translate(-10%, -10%); }
-            to { transform: translate(20%, 20%); }
-        }
-
-        .hero-card {
-            background: var(--glass);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            padding: 60px 40px;
-            border-radius: 32px;
-            border: 1px solid var(--glass-border);
-            text-align: center;
-            max-width: 480px;
-            width: 90%;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            animation: fadeIn 0.8s ease-out;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .logo-container {
-            background: rgba(99, 102, 241, 0.1);
-            width: 80px;
-            height: 80px;
-            margin: 0 auto 24px;
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 40px;
-            border: 1px solid rgba(99, 102, 241, 0.2);
-            box-shadow: 0 0 20px rgba(99, 102, 241, 0.2);
-        }
-
-        h1 {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            font-size: 32px;
-            font-weight: 700;
-            margin-bottom: 12px;
-            letter-spacing: -0.02em;
-            background: linear-gradient(to right, #fff, #94a3b8);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        p {
-            color: var(--text-dim);
-            margin-bottom: 40px;
-            line-height: 1.6;
-            font-size: 16px;
-        }
-
-        .btn-group {
-            display: flex;
-            gap: 16px;
-            flex-direction: column;
-        }
-
-        .btn {
-            padding: 16px 32px;
-            border-radius: 14px;
-            font-weight: 600;
-            text-decoration: none;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            font-size: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        .btn-primary {
-            background: var(--primary);
-            color: white;
-            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
-        }
-
-        .btn-primary:hover {
-            background: var(--primary-hover);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
-        }
-
-        .btn-outline {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--glass-border);
-            color: white;
-        }
-
-        .btn-outline:hover {
-            background: rgba(255, 255, 255, 0.1);
-            border-color: rgba(255, 255, 255, 0.3);
-            transform: translateY(-2px);
-        }
-
-        .footer-tag {
-            margin-top: 30px;
-            font-size: 12px;
-            color: #475569;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-        }
-    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="home.css">
 </head>
 <body>
-    <div class="blob"></div>
+    <div id="cursor-glow" class="cursor-glow"></div>
     
-    <div class="hero-card">
-        <div class="logo-container">🤖</div>
-        <h1>EcomOps AI Agent</h1>
-        <p>Your intelligent companion for inventory, analytics, and workflow automation. Securely access your terminal below.</p>
-        
-        <div class="btn-group">
-            <a href="form.html" class="btn btn-primary">
-                Manager Login <span>→</span>
-            </a>
-            <a href="form.html" class="btn btn-outline">
-                Register New Account
-            </a>
-        </div>
+    <div class="shape shape-1"></div>
+    <div class="shape shape-2"></div>
+    
+    <main class="hero-container">
+        <div class="hero-card">
+            <div class="badge">v2.0 Beta Now Live</div>
+            <h1>EcomOps AI Agent</h1>
+            <p>Your intelligent hub for inventory analytics and automation. Scale your commerce workflow with AI precision.</p>
+            
+            <div class="btn-group">
+                <a href="login.html" class="btn btn-primary">
+                    Manager Login
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                </a>
+                <a href="form.html" class="btn btn-outline">
+                    Create New Account
+                </a>
+            </div>
 
-        <div class="footer-tag">Enterprise Grade Security</div>
-    </div>
+            <div class="footer-tag">Enterprise Grade Security</div>
+        </div>
+    </main>
+
+    <script >
+
+        const glow = document.getElementById('cursor-glow');
+
+document.addEventListener('mousemove', (e) => {
+    // Moves the glow div to follow the mouse cursor
+    const x = e.clientX;
+    const y = e.clientY;
+    
+    glow.style.left = x + 'px';
+    glow.style.top = y + 'px';
+});
+
+// Optional: Pulse effect when clicking
+document.addEventListener('mousedown', () => {
+    glow.style.width = '800px';
+    glow.style.height = '800px';
+});
+
+document.addEventListener('mouseup', () => {
+    glow.style.width = '600px';
+    glow.style.height = '600px';
+});
+    </script>
 </body>
 </html>
