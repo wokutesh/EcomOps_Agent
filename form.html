@@ -5,167 +5,166 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register Manager | EcomOps AI</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --primary: #6366f1;
-            --primary-glow: rgba(99, 102, 241, 0.4);
-            --bg: #0f172a;
-            --glass: rgba(255, 255, 255, 0.03);
-            --glass-border: rgba(255, 255, 255, 0.1);
-            --text-main: #f8fafc;
-            --text-dim: #94a3b8;
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background: radial-gradient(circle at top right, #1e1b4b, #0f172a);
-            color: var(--text-main);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .form-card {
-            background: var(--glass);
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
-            border: 1px solid var(--glass-border);
-            border-radius: 28px;
-            padding: 40px;
-            width: 100%;
-            max-width: 500px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-        }
-
-        .header { text-align: center; margin-bottom: 32px; }
-        .header h2 { font-family: 'Plus Jakarta Sans'; font-size: 28px; margin-bottom: 8px; }
-        .header p { color: var(--text-dim); font-size: 14px; }
-
-        .section-label {
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            color: var(--primary);
-            margin: 24px 0 12px;
-            font-weight: 700;
-            display: block;
-        }
-
-        .input-group { position: relative; margin-bottom: 20px; }
-
-        input {
-            width: 100%;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--glass-border);
-            border-radius: 12px;
-            padding: 14px 16px;
-            color: white;
-            font-size: 15px;
-            transition: all 0.3s;
-        }
-
-        input:focus {
-            outline: none;
-            border-color: var(--primary);
-            background: rgba(99, 102, 241, 0.05);
-            box-shadow: 0 0 15px var(--primary-glow);
-        }
-
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-
-        button {
-            width: 100%;
-            padding: 16px;
-            background: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-weight: 700;
-            font-size: 16px;
-            cursor: pointer;
-            margin-top: 10px;
-            transition: all 0.3s;
-            box-shadow: 0 4px 15px var(--primary-glow);
-        }
-
-        button:hover {
-            background: #4f46e5;
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px var(--primary-glow);
-        }
-
-        .back-link {
-            display: block;
-            text-align: center;
-            margin-top: 24px;
-            color: var(--text-dim);
-            text-decoration: none;
-            font-size: 13px;
-        }
-
-        .back-link:hover { color: white; }
-    </style>
+    <link rel="stylesheet" href="form.css">
 </head>
 <body>
     <div class="form-card">
-        <div class="header">
-            <h2>Manager Registration</h2>
-            <p>Onboard a new agent to your EcomOps network</p>
+    <div class="header">
+        <h2>Manager Registration</h2>
+        <p>Streamline your EcomOps network onboarding.</p>
+    </div>
+
+    <form id="registrationForm" class="form-grid">
+        
+        <div class="full-width"><span class="section-label">Identity</span></div>
+        
+        <div class="input-group">
+            <label>Full Name</label>
+            <input type="text" id="full_name" placeholder="John Ali" required>
+        </div>
+        
+        <div class="input-group">
+            <label>Organization</label>
+            <input type="text" id="company_name" placeholder="Amazon" required>
         </div>
 
-        <form id="registrationForm">
-            <span class="section-label">General Information</span>
-            <div class="input-group">
-                <input type="text" id="full_name" placeholder="Manager Full Name" required>
-            </div>
-            <div class="input-group">
-                <input type="text" id="company_name" placeholder="Company / Organization" required>
-            </div>
-            <div class="input-group">
-                <label>Email Address</label>
-                <input type="email" id="mgr-email" placeholder="manager@company.com" required>
-            </div>
-            <div class="input-group">
-                <label>Set Password</label>
+        <div class="input-group full-width">
+            <label>Email Address</label>
+            <input type="email" id="mgr-email" placeholder="manager@gmail.com" required>
+        </div>
+
+        <div class="full-width"><span class="section-label">Security</span></div>
+        
+        <div class="input-group full-width">
+            <label>Access Password</label>
+            <div class="password-wrapper">
                 <input type="password" id="mgr-password" placeholder="••••••••" required>
+                <span class="toggle-password" id="togglePass">show</span>
+                
             </div>
-            <span class="section-label">Database Configuration (Direct Link)</span>
-            <div class="input-group">
-                <input type="text" id="db_host" placeholder="Database Host" required>
-            </div>
-            
-            <div class="grid">
-                <div class="input-group">
-                    <input type="text" id="db_user" placeholder="DB user" required>
-                </div>
-                <div class="input-group">
-                    <input type="password" id="db_pass" placeholder="DB Password" required>
-                </div>
-            </div>
+            <ul class="req-list">
+                    <li id="len" class="req-item">• 8+ Characters</li>
+                    <li id="spec" class="req-item">• Mixture of Case & Symbols</li>
+                </ul>
+            <div class="strength-meter"><div id="strength-bar" class="strength-bar"></div></div>
+        </div>
 
-            <div class="grid">
-                <div class="input-group">
-                    <input type="text" id="db_name" placeholder="DB Name" required>
-                </div>
-                <div class="input-group">
-                    <input type="number" id="db_port" placeholder="Port (5432)" required>
-                </div>
-            </div>
+        <div class="full-width"><span class="section-label">Database Configuration</span></div>
+        
+       <div class="input-group full-width">
+            <label>Database Host</label>
+            <div class="password-wrapper">
+                <input type="password" id="db_host" placeholder="dbhost" required>
 
+            </div>
+        </div>
+
+
+        <div class="input-group">
+            <label>DB User</label>
+            <input type="text" id="db_user" placeholder="dbuser" required>
+        </div>
+        
+
+        <div class="input-group">
+        <label>DB Password</label>
+        <div class="password-wrapper">
+            <input type="password" id="db_pass" placeholder="••••••••" required>
+            <span class="toggle-password" id="toggleDBPass">show</span>
+        </div>
+    </div>
+        
+       <div class="input-group">
+        <label>Connection Port</label>
+        <div class="password-wrapper">
+            <input type="password" id="db_port" value="dbport" required>
+       
+        </div>
+    </div>
+      <div class="input-group">
+        <label>DB name</label>
+        <div class="password-wrapper">
+            <input type="text" id="db_name" placeholder="dbname" required>
+       
+        </div>
+    </div>
+
+        <div class="full-width">
             <button type="submit">Create Agent Profile</button>
-        </form>
+            <a href="index.html" class="back-link">← Cancel and return to home</a>
+        </div>
+    </form>
 
-        <a href="index.html" class="back-link">← Cancel and return to home</a>
+        
     </div>
 
     <script>
-    document.getElementById('registrationForm').onsubmit = async (e) => {
-        e.preventDefault();
 
+        const securityMappings = [
+   
+    { toggle: 'toggleHost', input: 'db_host' },
+    { toggle: 'toggleDBPass', input: 'db_pass' },
+    { toggle: 'togglePort', input: 'db_port' }
+];
+
+        const passInput = document.getElementById('mgr-password');
+        const toggleBtn = document.getElementById('togglePass');
+        const bar = document.getElementById('strength-bar');
+
+
+        toggleBtn.onclick = () => {
+            const isPass = passInput.type === 'password';
+            passInput.type = isPass ? 'text' : 'password';
+            toggleBtn.innerText = isPass ? 'hide' : 'show';
+        };
+
+        // Real-time Strength Check
+        passInput.oninput = () => {
+            const val = passInput.value;
+            let score = 0;
+            
+            if (val.length >= 8) { score++; document.getElementById('len').classList.add('valid'); } 
+            else { document.getElementById('len').classList.remove('valid'); }
+            
+            if (/[A-Z]/.test(val) && /[0-9]/.test(val) && /[^A-Za-z0-9]/.test(val)) {
+                score += 2;
+                document.getElementById('spec').classList.add('valid');
+            } else {
+                document.getElementById('spec').classList.remove('valid');
+            }
+
+            const colors = ['#ef4444', '#f59e0b', '#10b981'];
+            bar.style.width = (score / 3 * 100) + '%';
+            bar.style.background = colors[score - 1] || '#333';
+        };
+
+        document.getElementById('registrationForm').onsubmit = async (e) => {
+            e.preventDefault();
+
+            securityMappings.forEach(mapping => {
+        const btn = document.getElementById(mapping.toggle);
+        const field = document.getElementById(mapping.input);
+
+        if (btn && field) {
+            btn.addEventListener('click', () => {
+                const isHidden = field.type === 'password';
+                field.type = isHidden ? 'text' : 'password';
+                btn.textContent = isHidden ? 'hide' : 'show';
+                
+                // Visual feedback: Subtle border glow when "revealed"
+                field.style.borderColor = isHidden ? 'var(--primary)' : 'var(--glass-border)';
+            });
+        }
+});
+
+        const password = document.getElementById('mgr-password').value;
+        
+        // Final JS validation before sending to FastAPI
+        const strongRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])(?=.{8,})/;
+        if (!strongRegex.test(password)) {
+            alert("🔴 Password must be at least 8 characters long and include uppercase, lowercase, numbers, and special characters.");
+            return;
+        }
         // 1. Get the button and show loading state
         const submitBtn = e.target.querySelector('button');
         const originalText = submitBtn.innerText;
