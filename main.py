@@ -1,7 +1,8 @@
+import re
 import uuid
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException,Header
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel,EmailStr,Field
+from pydantic import BaseModel,EmailStr,Field,validator
 from typing import Optional, Dict
 import psycopg2
 from psycopg2.extras import RealDictCursor
@@ -20,6 +21,26 @@ groq_client = Groq(api_key=os.getenv("groq_api"))
 
 app = FastAPI()
 
+SYSTEM_PROMPT = """
+You are the EcomOps Command Agent, a strategic database analyst. 
+Your goal is to transform raw database tuples into insightful business intelligence.
+
+### RESPONSE RULES:
+1. MULTI-TOOL VERIFICATION: Use at least two tools if the query requires context (e.g., performance + active connections).
+2. NO RAW CODE: Never display raw Python lists, tuples, or brackets like '[(...)]'. 
+3. DATA FORMATTING: Always convert list data into clean Markdown Tables.
+4. TONE: Professional, concise, and helpful.
+
+### STRUCTURE:
+- STATUS: Start with 🟢 (Healthy), 🟡 (Warning), or 🔴 (Critical).
+- ANALYSIS: Explain 'the why' behind the numbers.
+- DATA TABLE: A formatted table of the results.
+- RECOMMENDATION: Provide a concrete next step for the manager.
+
+### TRUTHFULNESS:
+If a tool returns no data, state "No records found for this period." Never hallucinate numbers.
+"""
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -28,17 +49,30 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 # --- MODELS ---
 class ManagerConfig(BaseModel):
     full_name: str
     company_name: str
     email: EmailStr  
-    password: str = Field(..., max_length=72)
+    password: str = Field(..., min_length=8, max_length=72)
     db_host: str
     db_user: str
     db_pass: str
     db_name: str
     db_port: int
+    
+    @validator('password')
+    def password_strength_check(cls, v):
+        if not re.search(r'[A-Z]', v):
+            raise ValueError('Password must contain at least one uppercase letter')
+        if not re.search(r'[a-z]', v):
+            raise ValueError('Password must contain at least one lowercase letter')
+        if not re.search(r'[0-9]', v):
+            raise ValueError('Password must contain at least one number')
+        if not re.search(r'[!@#$%^&*(),.?":{}|<>]', v):
+            raise ValueError('Password must contain at least one special character')
+        return v
 
 class EcomOpsRequest(BaseModel):
     prompt: str
@@ -60,13 +94,15 @@ def hash_password(password: str):
 
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password[:72], hashed_password)
+
+
 def get_master_db_conn():
     try:
         conn = psycopg2.connect(
             host="aws-1-eu-west-1.pooler.supabase.com", 
             database="postgres",
             user="postgres.ghkglgpzemroczxddbul",
-            password="@A1g2e3n4t5", 
+            password = "@A1g2e3n4t5", 
             port=6543,
             sslmode='require',
             options="-c pgbouncer=true"
@@ -84,44 +120,41 @@ async def call_mcp_agent(user_prompt, db_creds):
         async with ClientSession(read, write) as session:
             await session.initialize()
 
-            # The System Prompt tells the agent who it is and what tools it has
-            agent_instructions = (
-                "You are the EcomOps DB Manager. "
-                "If a developer asks about structure, use 'inspect_schema'. "
-                "If a manager asks about sales/activity, use 'track_activity'. "
-                "For specific questions, use 'execute_sql' after generating the correct query."
-            )
-
-            # Let Groq decide which tool to call based on the prompt
-            # (Note: This requires Groq's tool_calling capability or a logic gate)
-            
-            # For simplicity, let's stick to your current 'execute_sql' flow but 
-            # improve the SQL generation to be aware of the schema.
-            
-            # 1. First, the agent 'Inspects' if it doesn't know the schema
+            # 1. Inspect Schema (so the AI knows the table structure)
             schema_info = await session.call_tool("inspect_schema", arguments={
-                "host": db_creds['db_host'], "user": db_creds['db_user'], 
-                "password": db_creds['db_pass'], "dbname": db_creds['db_name'], "port": db_creds['db_port']
-            })
+                    "host": db_creds['db_host'], "user": db_creds['db_user'], 
+                    "password": db_creds['db_pass'], "dbname": db_creds['db_name'], "port": db_creds['db_port']
+                })
 
-            # 2. Now Groq writes SQL knowing the EXACT table names
+            # 2. Generate the SQL
             sql_gen = groq_client.chat.completions.create(
                 model="llama-3.3-70b-versatile",
-                messages=[
-                    {"role": "system", "content": f"Schema: {schema_info.content[0].text}\nOutput raw SQL only."},
+                messages = [
+                    {"role": "system", "content": f"Use this schema: {schema_info.content[0].text}. If looking for cities, check the 'customers' table for the exact column name."},
                     {"role": "user", "content": user_prompt}
                 ]
             )
             clean_sql = sql_gen.choices[0].message.content.replace("```sql", "").replace("```", "").strip()
 
-            # 3. Execute
-            final_data = await session.call_tool("execute_sql", arguments={
+            # 3. Execute the SQL to get the raw data (the [(3, 'desktop', ...)] part)
+            raw_data = await session.call_tool("execute_sql", arguments={
                 "sql_query": clean_sql,
                 "host": db_creds['db_host'], "user": db_creds['db_user'], 
                 "password": db_creds['db_pass'], "dbname": db_creds['db_name'], "port": db_creds['db_port']
             })
             
-            return final_data.content[0].text
+            if "Error:" in raw_data.content[0].text:
+                
+                return f"❌ Database"
+            final_response = groq_client.chat.completions.create(
+                model="llama-3.3-70b-versatile",
+                messages=[
+                    {"role": "system", "content": SYSTEM_PROMPT}, 
+                    {"role": "user", "content": f"The manager asked: {user_prompt}. Here is the raw DB data: {raw_data.content[0].text}. Summarize it."}
+                ]
+            )
+            
+            return final_response.choices[0].message.content
 
 @app.post("/api/v1/register-manager")
 async def register_manager(config: ManagerConfig):
@@ -189,6 +222,20 @@ async def login(credentials: LoginSchema):
     finally:
         if conn: conn.close()
         
+token_blacklist = set()
+
+@app.post("/api/v1/logout")
+async def logout_manager(authorization: str = Header(None)):
+    if not authorization:
+        raise HTTPException(status_code=400, detail="No token provided")
+    
+    # Extract token from "Bearer <token>"
+    token = authorization.split(" ")[1]
+    
+    # Add to blacklist
+    token_blacklist.add(token)
+    
+    return {"message": "Successfully logged out"}
 # 1. Get Profile Details
 @app.get("/api/v1/manager/profile/{manager_id}")
 async def get_manager_profile(manager_id: str):
@@ -294,16 +341,7 @@ async def get_manager_threads(manager_id: str):
     return {"threads": threads}
 
 
-SYSTEM_PROMPT = """
-You are the EcomOps Command Agent. When a user asks a question:
 
-1. Multi-Tool Approach: Always use at least two tools to verify a situation (e.g., if a query is slow, check get_slow_queries AND get_active_connections).
-2. Structure:
-   - Status: Label the situation with 🟢 (Healthy), 🟡 (Warning), or 🔴 (Critical).
-   - Analysis: Explain why this is happening based on tool data.
-   - Recommendation: Provide a specific next step.
-3. Truthfulness: If a tool returns no data, state that clearly. Never guess values.
-"""
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="127.0.0.1", port=8000)
